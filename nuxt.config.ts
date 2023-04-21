@@ -13,4 +13,5 @@ export default defineNuxtConfig({
       ? "/"
       : "/teaching/summer-term-2023/daten-die-uns-bewegen/herumjuckeln/herumjuckeln/",
   },
+  modules: ["@vueuse/nuxt"],
 });
