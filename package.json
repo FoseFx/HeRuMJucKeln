@@ -30,7 +30,10 @@
     "vue-tsc": "^1.2.0"
   },
   "dependencies": {
+    "@mapbox/mapbox-gl-geocoder": "^5.0.1",
+    "@studiometa/vue-mapbox-gl": "^2.1.1",
     "@vueuse/rxjs": "^10.0.2",
+    "mapbox-gl": "^2.14.1",
     "rxjs": "^7.8.0"
   }
 }
