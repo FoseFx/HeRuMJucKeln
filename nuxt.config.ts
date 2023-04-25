@@ -22,4 +22,10 @@ export default defineNuxtConfig({
       autoImport: true,
     },
   },
+  runtimeConfig: {
+    public: {
+      isProd,
+      isDev,
+    },
+  },
 });
