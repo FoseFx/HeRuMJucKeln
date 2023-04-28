@@ -1,5 +1,6 @@
 <template>
   <div>
+    <NotificationPopup />
     <TopBar />
     <NavMenu />
     <div class="content">
