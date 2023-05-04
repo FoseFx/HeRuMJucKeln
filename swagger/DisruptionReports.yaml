@@ -1,0 +1,323 @@
+openapi: 3.0.3
+info:
+  title: Disruption Reports
+  description: Specifications of the API endpoints of disruption reports.
+  version: 1.0.0
+tags:
+  - name: Disruption reports
+    description: Notifications of category DISRUPTION. Reported by IVU, e.g. congestion (on) line.
+  - name: Updates on disruption reports
+    description:
+      Control registration on updates for disruption reports. __Hint:__ At some point we will use the same
+      base path for every endpoint
+servers:
+  - url: /fl
+  - url: /
+paths:
+  /gw/disruptionReports:
+    get:
+      tags:
+        - Disruption reports
+      description: Returns all currently available disruption reports.
+      operationId: retrieveDisruptionReports
+      parameters:
+        - $ref: "./common/parameters.yaml#/query/multipleTenants"
+        - $ref: "./common/parameters.yaml#/header/Accept-Language-Required"
+      responses:
+        200:
+          description: The data of all disruption reports matching the given query parameters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DisruptionReportsResponse"
+        400:
+          $ref: "./common/responses.yaml#/MissingTenant"
+        403:
+          $ref: "./common/responses.yaml#/NotAuthorizedForTenants"
+        404:
+          $ref: "./common/responses.yaml#/UnknownTenant"
+    delete:
+      tags:
+        - Disruption reports
+      description: Method to acknowledge i.e. delete disruption reports.
+      operationId: acknowledgeDisruptionReport
+      parameters:
+        - name: uid
+          in: query
+          description: UIDs of the disruption reports
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        200:
+          description:
+            The acknowledgment was executed. The actual status of a single acknowledgement must be checked in
+            the response body. It is stated there for each disruption report whether it was acknowledged or not. If not,
+            the reason for the failure is presented. If the disruption report is not present at the server it will still
+            return the internal status of 200 since the goal of this API method was achieved - the disruption report
+            does not exist. Hence, the method is idempotent. The number of results in the response is
+            equal to the number of ids being present as query parameters.
+          content:
+            application/json:
+              schema:
+                $ref: "./common/schemas.yaml#/ModificationResultResponse"
+              example:
+                containsErrors: true
+                results:
+                  - id: "1"
+                    status:
+                      value: "OK"
+                      error: false
+                  - id: "2"
+                    status:
+                      value: "UNAUTHORIZED"
+                      error: true
+                    description: "Unauthorized for this tenant"
+        400:
+          $ref: "./common/responses.yaml#/MissingId"
+        401:
+          $ref: "./common/responses.yaml#/UserNotAuthenticated"
+    patch:
+      # Please note:
+      # To fully comply with REST, this request would need an identifier in the path (not in query parameters) and a
+      # DisruptionReport object in the request body.
+      # We decided against this for two reasons:
+      # 1. We foresee a use-case where multiple disruption reports should be assignable at once.
+      #    This is not easily possible with an identifier in the path.
+      # 2. The current OpenAPI version does not allow us to set readOnly properties for referenced schemas. It is only
+      #    allowed to set a readOnly flag per object, making it read-only in ALL use-cases.
+      #    This is a problem as e.g. not all use-cases allow for a BlockIdentification to be read-only.
+      tags:
+        - Disruption reports
+      description: Method to assign a disruption report to a user or unassign to no one.
+      operationId: assignDisruptionReport
+      parameters:
+        - name: uid
+          in: query
+          description: UIDs of the disruption reports
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      requestBody:
+        description:
+          Information about the user to be assigned to. If the user property is null,
+          the user will be unassigned.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DisruptionReportsAssignmentBody"
+            examples:
+              assign:
+                description: Send the user name to assign the disruption report(s) to her/him.
+                value:
+                  user: "John Doe"
+              unassign:
+                description: Send null as user to unassign the current one.
+                value:
+                  user: null
+      responses:
+        200:
+          description:
+            The assignment was executed. The actual status of a single assignment must be checked in
+            the response body. It is stated there for each disruption report whether it was assigned or not. If not,
+            the reason for the failure is presented. If the disruption report is already assigned to the user, it will
+            still return the internal status of 200 since the goal of this API method was achieved - the disruption
+            report is assigned to the requested user. Hence, the method is idempotent. The number of results in the
+            response is equal to the number of ids being present as query parameters.
+          content:
+            application/json:
+              schema:
+                $ref: "./common/schemas.yaml#/ModificationResultResponse"
+              example:
+                containsFailures: true
+                results:
+                  - id: "1"
+                    status:
+                      value: "OK"
+                      error: false
+                  - id: "2"
+                    status:
+                      value: "UNAUTHORIZED"
+                      error: true
+                    description: Unauthorized for this tenant
+        400:
+          $ref: "./common/responses.yaml#/MissingId"
+        401:
+          $ref: "./common/responses.yaml#/UserNotAuthenticated"
+  /disruptionReports/updates/subscriptions:
+    post:
+      tags:
+        - Updates on disruption reports
+      description: Creates a subscription for updates. The response contains the ID to identify the subscription by.
+      operationId: registerForDisruptionReportUpdates
+      parameters:
+        - $ref: "./common/parameters.yaml#/header/Accept-Language-Optional"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DisruptionReportsSubscriptionRequestBody"
+        required: true
+      responses:
+        400:
+          $ref: "./common/responses.yaml#/MissingRequestBody"
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "./common/schemas.yaml#/SubscriptionResponse"
+  /disruptionReports/updates/subscriptions/{subscriptionId}:
+    delete:
+      tags:
+        - Updates on disruption reports
+      description: Removes the subscription with the given subscription ID.
+      operationId: deregisterForDisruptionReportUpdates
+      parameters:
+        - $ref: "./common/parameters.yaml#/path/subscriptionId"
+      responses:
+        404:
+          $ref: "./common/responses.yaml#/SubscriptionNotFound"
+        400:
+          $ref: "./common/responses.yaml#/MissingSubscriptionId"
+        200:
+          $ref: "./common/responses.yaml#/PlainOk"
+    put:
+      tags:
+        - Updates on disruption reports
+      description:
+        Changes an existing subscription to the parameters supplied with the request body. This method can be
+        used while already retrieving the update stream of the subscription. The changes are applied immediately.
+      operationId: modifySubscriptionForDisruptionReports
+      parameters:
+        - $ref: "./common/parameters.yaml#/header/Accept-Language-Optional"
+        - $ref: "./common/parameters.yaml#/path/subscriptionId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DisruptionReportsSubscriptionRequestBody"
+        required: true
+      responses:
+        404:
+          $ref: "./common/responses.yaml#/SubscriptionNotFound"
+        400:
+          $ref: "./common/responses.yaml#/MissingSubscriptionId"
+        200:
+          $ref: "./common/responses.yaml#/PlainOk"
+  /disruptionReports/updates:
+    get:
+      tags:
+        - Updates on disruption reports
+      description:
+        Retrieves the update stream for a previously registered subscription identified by its subscription
+        ID.
+      operationId: retrieveUpdatesForDisruptionReports
+      parameters:
+        - $ref: "./common/parameters.yaml#/query/subscriptionId"
+      responses:
+        404:
+          $ref: "./common/responses.yaml#/SubscriptionNotFound"
+        400:
+          $ref: "./common/responses.yaml#/MissingSubscriptionId"
+        200:
+          description: OK
+          content:
+            text/event-stream:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DisruptionReportChange"
+components:
+  schemas:
+    DisruptionReportsResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DisruptionReport"
+    DisruptionReport:
+      type: object
+      properties:
+        uid:
+          type: string
+        tenant:
+          type: string
+        category:
+          $ref: "./common/schemas.yaml#/NotificationCategory"
+        operatingDay:
+          type: string
+          format: date
+        type:
+          type: string
+        creationTime:
+          $ref: "./common/schemas.yaml#/Timestamp"
+        origin:
+          $ref: "./common/schemas.yaml#/NotificationOrigin"
+        text:
+          type: string
+        priority:
+          type: integer
+          format: int32
+        line:
+          $ref: "./common/schemas.yaml#/LineIdentification"
+        position:
+          $ref: "./common/schemas.yaml#/Position"
+        destination:
+          $ref: "./common/schemas.yaml#/Destination"
+        user:
+          type: string
+        vehicle:
+          $ref: "./common/schemas.yaml#/VehicleIdentification"
+        voiceRadioId:
+          type: string
+          description: voice radio ID of the vehicle
+        deviation:
+          $ref: "./common/schemas.yaml#/Deviation"
+        driver:
+          $ref: "./common/schemas.yaml#/DriverIdentification"
+        occupancy:
+          $ref: "./common/schemas.yaml#/Occupancy"
+        trailers:
+          $ref: "./common/schemas.yaml#/Trailers"
+        remainingRange:
+          $ref: "./common/schemas.yaml#/RemainingRange"
+        stateOfCharge:
+          $ref: "./common/schemas.yaml#/StateOfCharge"
+        block:
+          $ref: "./common/schemas.yaml#/BlockIdentification"
+        trip:
+          $ref: "./common/schemas.yaml#/TripIdentification"
+    DisruptionReportsAssignmentBody:
+      type: object
+      allOf:
+        - $ref: "./common/schemas.yaml#/BasicAssignmentBody"
+    DisruptionReportsSubscriptionRequestBody:
+      type: object
+      properties:
+        filterKeys:
+          type: array
+          items:
+            $ref: "#/components/schemas/DisruptionReportsFilterSpec"
+    DisruptionReportsFilterSpec:
+      type: object
+      properties:
+        tenant:
+          type: array
+          items:
+            type: string
+    DisruptionReportChange:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          $ref: "#/components/schemas/DisruptionReport"
+      allOf:
+        - $ref: "./common/schemas.yaml#/BasicChange"

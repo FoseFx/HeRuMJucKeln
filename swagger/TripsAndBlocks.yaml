@@ -1,0 +1,628 @@
+openapi: 3.0.3
+info:
+  title: Trips and blocks
+  description: Specifications of the API endpoints concerning blocks and trips.
+  version: 1.0.0
+tags:
+  - name: Blocks
+    description: Information about blocks
+  - name: Updates on blocks
+    description:
+      Control registration on updates for blocks. __Hint:__ At some point we will use the same
+      base path for every endpoint
+  - name: Trips
+    description: Information about trips
+servers:
+  - url: /fl
+  - url: /
+paths:
+  /gw/blocks/condensed:
+    summary:
+      Returns a condensed view of blocks. A condensed block contains an ordered list of all trips a vehicle has
+      to serve on a given operating day. The trips contain the information about the first and last net point served as
+      well as the start and stop times.
+    get:
+      tags:
+        - Blocks
+      description:
+        Retrieves a condensed view of the blocks matching the given query parameters.
+        If a vehicle is registered but not currently serving a block, it won't appear in the result. Thus, the result
+        might come back empty.
+      operationId: retrieveCondensedBlocks
+      parameters:
+        - name: vehicleUid
+          in: query
+          description: The UIDs of the vehicles to return the currently associated blocks for.
+          schema:
+            type: array
+            items:
+              type: string
+        - name: blockUid
+          in: query
+          description: The UIDs of the blocks that should be returned.
+          schema:
+            type: array
+            items:
+              type: string
+        - $ref: "./common/parameters.yaml#/header/Accept-Language-Required"
+      responses:
+        200:
+          description: The condensed view of all known blocks matching the given parameters is returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CondensedBlocksResponse"
+        400:
+          $ref: "#/components/responses/MissingQueryParameter"
+        403:
+          $ref: "./common/responses.yaml#/NotAuthorizedForTenants"
+  /blocks/condensed/updates/subscriptions:
+    post:
+      tags:
+        - Updates on blocks
+      description: Creates a subscription for updates. The response contains the ID to identify the subscription by.
+      operationId: registerForCondensedBlockUpdates
+      parameters:
+        - $ref: "./common/parameters.yaml#/header/Accept-Language-Optional"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlockSubscriptionRequestBody"
+        required: true
+      responses:
+        400:
+          $ref: "./common/responses.yaml#/MissingRequestBody"
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "./common/schemas.yaml#/SubscriptionResponse"
+  /blocks/condensed/updates/subscriptions/{subscriptionId}:
+    delete:
+      tags:
+        - Updates on blocks
+      description: Removes the subscription with the given subscription ID.
+      operationId: deregisterForCondensedBlockUpdates
+      parameters:
+        - $ref: "./common/parameters.yaml#/path/subscriptionId"
+      responses:
+        404:
+          $ref: "./common/responses.yaml#/SubscriptionNotFound"
+        400:
+          $ref: "./common/responses.yaml#/MissingSubscriptionId"
+        200:
+          $ref: "./common/responses.yaml#/PlainOk"
+    put:
+      tags:
+        - Updates on blocks
+      description:
+        Changes an existing subscription to the parameters supplied with the request body. This method can be
+        used while already retrieving the update stream of the subscription. The changes are applied immediately.
+      operationId: modifySubscriptionForCondensedBlocks
+      parameters:
+        - $ref: "./common/parameters.yaml#/header/Accept-Language-Optional"
+        - $ref: "./common/parameters.yaml#/path/subscriptionId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlockSubscriptionRequestBody"
+        required: true
+      responses:
+        404:
+          $ref: "./common/responses.yaml#/SubscriptionNotFound"
+        400:
+          $ref: "./common/responses.yaml#/MissingSubscriptionId"
+        200:
+          $ref: "./common/responses.yaml#/PlainOk"
+  /blocks/condensed/updates:
+    get:
+      tags:
+        - Updates on blocks
+      description:
+        Retrieves the update stream for a previously registered subscription identified by its subscription
+        ID.
+      operationId: retrieveUpdatesForCondensedBlocks
+      parameters:
+        - $ref: "./common/parameters.yaml#/query/subscriptionId"
+      responses:
+        404:
+          $ref: "./common/responses.yaml#/SubscriptionNotFound"
+        400:
+          $ref: "./common/responses.yaml#/MissingSubscriptionId"
+        200:
+          description: OK
+          content:
+            text/event-stream:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CondensedBlockChange"
+  /gw/tripItineraries:
+    summary:
+      Returns data about trip itineraries. A trip itinerary describes the geographic path through a region a
+      vehicle must take while serving the associated trip. Additionally, it contains time-based information about the
+      nodes of the itinerary i.e. when should or did or probably will the vehicle arrive and depart from a specific net
+      point. We distinguish between "should" i.e. the planned time, "did" i.e. logged time and "will" i.e. predicted
+      timestamp.
+    get:
+      tags:
+        - Trips
+      description:
+        Retrieves data about the trip itineraries queried. At least one parameter has to be given.
+        The parameters vehicleUid and tripUid can be combined, but when given a blockUid the other parameters are not
+        permitted. Conversely, if tripUid, vehicleUid or both are present, a blockUid must not be present.
+        Please also note that at most one blockUid can be provided.
+      operationId: retrieveTripItineraries
+      parameters:
+        - name: vehicleUid
+          in: query
+          description:
+            The UIDs of the vehicles whose tripItineraries should be returned. If a vehicle has no associated
+            trip it will not be represented in the result set. Only vehicles with registration state "OPERATIONAL" will
+            have a trip itinerary.
+          schema:
+            type: array
+            items:
+              type: string
+        - name: tripUid
+          in: query
+          description: The UIDs of the trips whose tripItineraries should be returned.
+          schema:
+            type: array
+            items:
+              type: string
+            example: "IVU~-19945489~28"
+        - name: blockUid
+          in: query
+          description: The UID of the block whose tripItineraries should be returned.
+          schema:
+            type: string
+        - $ref: "./common/parameters.yaml#/header/Accept-Language-Required"
+      responses:
+        200:
+          description: The trip itineraries of all known trips matching the given parameters are returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripItinerariesResponse"
+        400:
+          description: Missing parameters or invalid combination of parameters.
+        403:
+          $ref: "./common/responses.yaml#/NotAuthorizedForTenants"
+  /tripItineraries/updates/subscriptions:
+    post:
+      tags:
+        - Updates on trip itineraries
+      description: Creates a subscription for updates. The response contains the ID to identify the subscription by.
+      operationId: registerForTripItinerariesUpdates
+      parameters:
+        - $ref: "./common/parameters.yaml#/header/Accept-Language-Optional"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TripItinerariesSubscriptionRequestBody"
+        required: true
+      responses:
+        400:
+          $ref: "./common/responses.yaml#/MissingRequestBody"
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "./common/schemas.yaml#/SubscriptionResponse"
+  /tripItineraries/updates/subscriptions/{subscriptionId}:
+    delete:
+      tags:
+        - Updates on trip itineraries
+      description: Removes the subscription with the given subscription ID.
+      operationId: deregisterForTripItinerariesUpdates
+      parameters:
+        - $ref: "./common/parameters.yaml#/path/subscriptionId"
+      responses:
+        404:
+          $ref: "./common/responses.yaml#/SubscriptionNotFound"
+        400:
+          $ref: "./common/responses.yaml#/MissingSubscriptionId"
+        200:
+          $ref: "./common/responses.yaml#/PlainOk"
+    put:
+      tags:
+        - Updates on trip itineraries
+      description:
+        Changes an existing subscription to the parameters supplied with the request body. This method can be
+        used while already retrieving the update stream of the subscription. The changes are applied immediately.
+      operationId: modifySubscriptionForTripItineraries
+      parameters:
+        - $ref: "./common/parameters.yaml#/header/Accept-Language-Optional"
+        - $ref: "./common/parameters.yaml#/path/subscriptionId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TripItinerariesSubscriptionRequestBody"
+        required: true
+      responses:
+        404:
+          $ref: "./common/responses.yaml#/SubscriptionNotFound"
+        400:
+          $ref: "./common/responses.yaml#/MissingSubscriptionId"
+        200:
+          $ref: "./common/responses.yaml#/PlainOk"
+  /tripItineraries/updates:
+    get:
+      tags:
+        - Updates on trip itineraries
+      description:
+        Retrieves the update stream for a previously registered subscription identified by its subscription
+        ID.
+      operationId: retrieveUpdatesForTripItineraries
+      parameters:
+        - $ref: "./common/parameters.yaml#/query/subscriptionId"
+      responses:
+        404:
+          $ref: "./common/responses.yaml#/SubscriptionNotFound"
+        400:
+          $ref: "./common/responses.yaml#/MissingSubscriptionId"
+        200:
+          description: OK
+          content:
+            text/event-stream:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TripItineraryChange"
+
+components:
+  schemas:
+    CondensedBlocksResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/CondensedBlock"
+    CondensedBlock:
+      type: object
+      description: Condensed view of a block.
+      properties:
+        trips:
+          description:
+            List of all trips (represented in a condensed view) of the block in the correct order, i.e. the
+            first entry of the list is the first trip of the block, the second entry is the second trip etc.
+          type: array
+          items:
+            $ref: "#/components/schemas/CondensedTrip"
+      allOf:
+        - $ref: "#/components/schemas/BasicBlock"
+
+    BasicBlock:
+      description: Common properties for every representation of a block.
+      type: object
+      properties:
+        identification:
+          $ref: "./common/schemas.yaml#/BlockIdentification"
+        tenant:
+          type: string
+        operatingDay:
+          type: string
+          format: date
+        lastModified:
+          $ref: "./common/schemas.yaml#/Timestamp"
+    Block:
+      type: object
+      description: Representation of a full block.
+      properties:
+        trips:
+          description:
+            List of all trips of the block in the correct order, i.e. the first entry of the list is the
+            first trip of the block, the second entry is the second trip etc.
+          type: array
+          items:
+            $ref: "#/components/schemas/Trip"
+      allOf:
+        - $ref: "#/components/schemas/BasicBlock"
+
+    Trip:
+      type: object
+      description: Representation of a full trip.
+      properties:
+        block:
+          $ref: "./common/schemas.yaml#/BlockIdentification"
+        line:
+          $ref: "./common/schemas.yaml#/LineIdentification"
+        itinerary:
+          $ref: "#/components/schemas/TripItinerary"
+      allOf:
+        - $ref: "#/components/schemas/BasicTrip"
+
+    BasicTrip:
+      description: Common properties for every representation of a trip.
+        Of the two fields plannedTimes and actualTimes only the planned times are always present.
+        If the trip will begin soon, the actual trip times will be present. The actual trip times will start as a
+        prediction of the times. After the trip was started, the start timestamp will switch to a logged one. After
+        the trip was finished, the end timestamp will switch to a logged one.
+      required:
+        - identification
+        - plannedTimes
+      properties:
+        identification:
+          $ref: "./common/schemas.yaml#/TripIdentification"
+        operatingDay:
+          type: string
+          format: date
+        destination:
+          type: string
+        plannedTimes:
+          $ref: "#/components/schemas/TripTimes"
+        actualTimes:
+          $ref: "#/components/schemas/ActualTripTimes"
+        cancelled:
+          description: True iff the whole trip is cancelled.
+          type: boolean
+        cancelledSegments:
+          description:
+            Contains a list of cancelled trip segments. If the property cancelled is set to true, a single
+            segment containing the whole itinerary is given.
+          type: array
+          items:
+            $ref: "#/components/schemas/CancelledSegment"
+    CondensedTrip:
+      type: object
+      description: A condensed view of a trip.
+      required:
+        - firstTripItineraryNode
+        - lastTripItineraryNode
+      properties:
+        firstTripItineraryNode:
+          $ref: "./common/schemas.yaml#/TripItineraryNodeIdentification"
+        lastTripItineraryNode:
+          $ref: "./common/schemas.yaml#/TripItineraryNodeIdentification"
+      allOf:
+        - $ref: "#/components/schemas/BasicTrip"
+
+    BlockSubscriptionRequestBody:
+      type: object
+      properties:
+        filterKeys:
+          type: array
+          items:
+            $ref: "#/components/schemas/BlockFilterSpec"
+          example:
+            - vehicleUid: ["i~STO~1", "i~STO~2308"]
+            - blockUid: ["IVU~1560~18"]
+    BlockFilterSpec:
+      type: object
+      properties:
+        vehicleUid:
+          type: array
+          items:
+            type: string
+        blockUid:
+          type: array
+          items:
+            type: string
+    CondensedBlockChange:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          $ref: "#/components/schemas/CondensedBlock"
+      allOf:
+        - $ref: "./common/schemas.yaml#/BasicChange"
+
+    TripItinerariesSubscriptionRequestBody:
+      type: object
+      properties:
+        filterKeys:
+          type: array
+          items:
+            $ref: "#/components/schemas/TripItinerariesFilterSpec"
+          example:
+            - vehicleUid: ["i~STO~1", "i~STO~2308"]
+            - blockUid: ["IVU~1560~18"]
+            - tripUid: ["IVU~-19945489~28"]
+    TripItinerariesFilterSpec:
+      type: object
+      properties:
+        vehicleUid:
+          type: array
+          items:
+            type: string
+        blockUid:
+          type: array
+          items:
+            type: string
+        tripUid:
+          type: array
+          items:
+            type: string
+    TripItineraryChange:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          $ref: "#/components/schemas/TripItinerary"
+      allOf:
+        - $ref: "./common/schemas.yaml#/BasicChange"
+
+    TripItinerariesResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/TripItinerary"
+    TripItinerary:
+      type: object
+      description:
+        A trip itinerary consists of a trip's route (i.e. its geographical route through the region) and
+        trip specific information like the arrival and departure times and information about passenger demands,
+        dispatching and so on. An itinerary mainly consists of its served links that are consisting of a start and an
+        end node. Those nodes are associated to net points of the traffic network.
+      properties:
+        identification:
+          $ref: "./common/schemas.yaml#/TripIdentification"
+        route:
+          $ref: "./common/schemas.yaml#/RouteIdentification"
+        links:
+          type: array
+          items:
+            $ref: "#/components/schemas/TripItineraryLink"
+    TripItineraryLink:
+      type: object
+      description: Link between the start and end node of the itinerary
+      properties:
+        length:
+          $ref: "#/components/schemas/LinkLength"
+        start:
+          $ref: "#/components/schemas/TripItineraryNode"
+        end:
+          $ref: "#/components/schemas/TripItineraryNode"
+    LinkLength:
+      type: integer
+      format: int32
+      description: Length of the link in meters
+    TripItineraryNode:
+      type: object
+      description:
+        This is a node of the itinerary. It describes a net point of our net. This node does not have to be
+        associated to a stop point. The type of the underlying net point can be found in the 'identification' property.
+      properties:
+        identification:
+          $ref: "./common/schemas.yaml#/TripItineraryNodeIdentification"
+        gpsPosition:
+          $ref: "./common/schemas.yaml#/GpsPosition"
+        timeInfo:
+          $ref: "#/components/schemas/TimeInfo"
+        cancelled:
+          type: boolean
+        demandStop:
+          type: boolean
+        wasServed:
+          type: boolean
+          description:
+            Is true iff the arrival and departure time are logged i.e. the vehicle actually arrived at (if it is
+            not the very first node) and departed (if it is not the very last node) from this node.
+        passengerDemand:
+          $ref: "#/components/schemas/PassengerDemand"
+        behaviorAtStop:
+          $ref: "#/components/schemas/BehaviorAtStop"
+    BehaviorAtStop:
+      type: string
+      enum:
+        - NORMAL
+        - PASS
+        - NO_ENTRY
+        - NO_EXIT
+        - SERVICE_STOP
+    PassengerDemand:
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/DemandType"
+        deboardingCount:
+          description: number of the de-boarding passengers
+          type: integer
+          format: int32
+        onboardingPassengers:
+          description: The passenger groups that will be on-boarding
+          type: array
+          items:
+            $ref: "#/components/schemas/PassengerGroup"
+      example:
+        type: BOTH
+        deboardingCount: 2
+        onboardingPassengers:
+          - name: Mrs. Smith
+            count: 2
+          - name: Mr. Doe
+            count: 5
+    PassengerGroup:
+      type: object
+      properties:
+        name:
+          type: string
+        count:
+          type: integer
+          format: int32
+    TimeInfo:
+      type: object
+      description:
+        The arrival and departure times of this itinerary's node. Only the pair of the planned times is
+        always present. If the trip will begin soon, the actual time info will be present. The actual time info will
+        start as a prediction of the times. After serving the node, it will switch to a logged timestamp.
+      properties:
+        planned:
+          $ref: "#/components/schemas/ArrivalDepartureTime"
+        actual:
+          $ref: "#/components/schemas/ActualArrivalDepartureTimes"
+      required:
+        - planned
+    ActualArrivalDepartureTimes:
+      type: object
+      properties:
+        predicted:
+          type: boolean
+        times:
+          $ref: "#/components/schemas/ArrivalDepartureTime"
+    ArrivalDepartureTime:
+      type: object
+      properties:
+        arrival:
+          $ref: "./common/schemas.yaml#/Timestamp"
+        departure:
+          $ref: "./common/schemas.yaml#/Timestamp"
+    DemandType:
+      type: string
+      enum:
+        - NO_DEMAND
+        - ONBOARDING
+        - DEBOARDING
+        - BOTH
+    TripTimes:
+      type: object
+      properties:
+        start:
+          $ref: "./common/schemas.yaml#/Timestamp"
+        end:
+          $ref: "./common/schemas.yaml#/Timestamp"
+    ActualTripTimes:
+      type: object
+      properties:
+        startPredicted:
+          type: boolean
+        endPredicted:
+          type: boolean
+      allOf:
+        - $ref: "#/components/schemas/TripTimes"
+
+    CancelledSegment:
+      description:
+        Represents a segment of cancelled trip stops, i.e. all stops between (and including) start and end
+        node are cancelled.
+      type: object
+      properties:
+        startNode:
+          $ref: "#/components/schemas/CancellationNode"
+        endNode:
+          $ref: "#/components/schemas/CancellationNode"
+    CancellationNode:
+      type: object
+      description:
+        Represents a cancelled node. Contains its identification (including posInRoute) and the planned
+        arrival and departure time.
+      properties:
+        identification:
+          $ref: "./common/schemas.yaml#/TripItineraryNodeIdentification"
+        timeInfo:
+          $ref: "#/components/schemas/ArrivalDepartureTime"
+  responses:
+    MissingQueryParameter:
+      description: Will be returned if no query parameter is present.

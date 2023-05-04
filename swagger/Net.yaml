@@ -1,0 +1,81 @@
+openapi: 3.0.3
+info:
+  title: Net
+  description: Specification of the API end points concerning the net, e.g. for net points and links.
+  version: 1.0.0
+tags:
+  - name: Net
+    description: Specification of the API end points concerning the net, e.g. for net points and links.
+servers:
+  - url: /fl
+  - url: /
+paths:
+  /gw/netPoints:
+    get:
+      tags:
+        - NetPoints
+      description: Retrieves net points of the given tenant.
+        Only one of the query parameters 'tenant' or 'lineUid' may be used at the same time. They are mutually
+        exclusive.
+      operationId: retrieveNetPoints
+      parameters:
+        - $ref: "./common/parameters.yaml#/query/multipleTenants"
+        - name: type
+          in: query
+          description: Type of net point.
+          schema:
+            type: array
+            items:
+              $ref: "./common/schemas.yaml#/NetPointType"
+        - name: lineUid
+          in: query
+          description: UIDs of lines.
+            If this query parameter is used, only net points of the desired types that are used on routes (both planned
+            and those dynamically created through dispatching) of the referenced lines will be returned.
+          schema:
+            type: array
+            items:
+              type: string
+          example: ["IVU~66", "IVU~100"]
+      responses:
+        200:
+          description: The net points of a given type, or if no type is given all net points.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NetPointsResponse"
+        400:
+          description: Will be returned if
+            the tenant and lineUid parameter are both missing or both present,
+            or if an unknown type is given.
+        403:
+          $ref: "./common/responses.yaml#/NotAuthorizedForTenants"
+        404:
+          $ref: "./common/responses.yaml#/UnknownTenant"
+
+components:
+  schemas:
+    NetPointsResponse:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/NetPointsResponseData"
+    NetPointsResponseData:
+      type: object
+      properties:
+        stopPoints:
+          type: array
+          items:
+            $ref: "./common/schemas.yaml#/NetPoint"
+        depotPoints:
+          type: array
+          items:
+            $ref: "./common/schemas.yaml#/NetPoint"
+        beacons:
+          type: array
+          items:
+            $ref: "./common/schemas.yaml#/NetPoint"
+        linkPoints:
+          type: array
+          items:
+            $ref: "./common/schemas.yaml#/NetPoint"

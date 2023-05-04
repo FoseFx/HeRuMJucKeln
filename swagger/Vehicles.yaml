@@ -1,0 +1,396 @@
+openapi: 3.0.3
+info:
+  title: Vehicles and vehicle states
+  description: Specifications of the API endpoints concerning vehicles and their states.
+  version: 1.0.0
+tags:
+  - name: Vehicles
+    description: Information about vehicles
+  - name: Updates on vehicle states
+    description:
+      Control registration on updates for vehicle states. __Hint:__ At some point we will use the same
+      base path for every endpoint
+servers:
+  - url: /fl
+  - url: /
+paths:
+  /gw/selectableVehicles:
+    summary:
+      Returns data about the vehicles that are known to the system. It contains data about the vehicle itself and
+      relevant operational details if it is currently used.
+    get:
+      tags:
+        - Vehicles
+      description: Retrieves data about the vehicles queried.
+      operationId: retrieveSelectableVehicles
+      parameters:
+        - $ref: "./common/parameters.yaml#/query/multipleTenants"
+        - name: registrationState
+          in: query
+          description:
+            Registration state of the vehicles. Only vehicles with the requested states will be returned in
+            the result. If no registrationState is given, all vehicles will be returned independently of their
+            registration state.
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/VehicleRegistrationState"
+        - $ref: "./common/parameters.yaml#/header/Accept-Language-Required"
+      responses:
+        200:
+          description: The data of all known vehicles matching the given parameters is returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SelectableVehiclesResponse"
+        400:
+          description:
+            Will be returned if the tenant is missing or the registration state does not comply with the
+            defined enum values.
+        403:
+          $ref: "./common/responses.yaml#/NotAuthorizedForTenants"
+        404:
+          $ref: "./common/responses.yaml#/UnknownTenant"
+  /gw/vehicleStates:
+    summary: Returns data related to state of the vehicles queried.
+    get:
+      tags:
+        - Vehicles
+      description:
+        Retrieves data related to states of the vehicles queried. The method shall be used with at least
+        one query parameter set (to a non-empty array).
+      operationId: retrieveVehicleStates
+      parameters:
+        - $ref: "./common/parameters.yaml#/query/multipleTenants"
+        - name: vehicleUid
+          in: query
+          description:
+            uid portion of VehicleIdentification. Only vehicle states matching will be
+            returned in the result.
+          schema:
+            type: array
+            items:
+              type: string
+          example: ["i~IVU~2619"]
+        - $ref: "./common/parameters.yaml#/header/Accept-Language-Required"
+      responses:
+        200:
+          description: The data of all known vehicle states matching the given parameters is returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VehicleStatesResponse"
+        400:
+          description: Will be returned if no filtering parameter at all is used.
+        403:
+          $ref: "./common/responses.yaml#/NotAuthorizedForTenants"
+        404:
+          $ref: "./common/responses.yaml#/UnknownTenant"
+  /vehicleStates/updates/subscriptions:
+    post:
+      tags:
+        - Updates on vehicle states
+      description: Creates a subscription for updates. The response contains the ID to identify the subscription by.
+      operationId: registerForVehicleStateUpdates
+      parameters:
+        - $ref: "./common/parameters.yaml#/header/Accept-Language-Optional"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VehicleStatesSubscriptionRequestBody"
+        required: true
+      responses:
+        400:
+          $ref: "./common/responses.yaml#/MissingRequestBody"
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "./common/schemas.yaml#/SubscriptionResponse"
+  /vehicleStates/updates/subscriptions/{subscriptionId}:
+    delete:
+      tags:
+        - Updates on vehicle states
+      description: Removes the subscription with the given subscription ID.
+      operationId: deregisterForVehicleStateUpdates
+      parameters:
+        - $ref: "./common/parameters.yaml#/path/subscriptionId"
+      responses:
+        404:
+          $ref: "./common/responses.yaml#/SubscriptionNotFound"
+        400:
+          $ref: "./common/responses.yaml#/MissingSubscriptionId"
+        200:
+          $ref: "./common/responses.yaml#/PlainOk"
+    put:
+      tags:
+        - Updates on vehicle states
+      description:
+        Changes an existing subscription to the parameters supplied with the request body. This method can be
+        used while already retrieving the update stream of the subscription. The changes are applied immediately.
+      operationId: modifySubscriptionForVehicleStates
+      parameters:
+        - $ref: "./common/parameters.yaml#/header/Accept-Language-Optional"
+        - $ref: "./common/parameters.yaml#/path/subscriptionId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VehicleStatesSubscriptionRequestBody"
+        required: true
+      responses:
+        404:
+          $ref: "./common/responses.yaml#/SubscriptionNotFound"
+        400:
+          $ref: "./common/responses.yaml#/MissingSubscriptionId"
+        200:
+          $ref: "./common/responses.yaml#/PlainOk"
+  /vehicleStates/updates:
+    get:
+      tags:
+        - Updates on vehicle states
+      description:
+        Retrieves the update stream for a previously registered subscription identified by its subscription
+        ID.
+      operationId: retrieveUpdatesForVehicleStates
+      parameters:
+        - $ref: "./common/parameters.yaml#/query/subscriptionId"
+      responses:
+        404:
+          $ref: "./common/responses.yaml#/SubscriptionNotFound"
+        400:
+          $ref: "./common/responses.yaml#/MissingSubscriptionId"
+        200:
+          description: OK
+          content:
+            text/event-stream:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VehicleStateChange"
+components:
+  schemas:
+    VehicleStatesSubscriptionRequestBody:
+      type: object
+      properties:
+        filterKeys:
+          type: array
+          items:
+            $ref: "#/components/schemas/VehicleStatesFilterSpec"
+          example:
+            - tenant: ["IVU"]
+            - vehicleUid: ["i{STO}#{1}", "i{STO}#{2308}"]
+    VehicleStatesFilterSpec:
+      type: object
+      properties:
+        tenant:
+          type: array
+          items:
+            type: string
+        vehicleUid:
+          type: array
+          items:
+            type: string
+    VehicleStateChange:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          $ref: "#/components/schemas/VehicleState"
+      allOf:
+        - $ref: "./common/schemas.yaml#/BasicChange"
+
+    DutyIdentification:
+      type: object
+      properties:
+        uid:
+          type: string
+        displayText:
+          type: string
+          readOnly: true
+    Speed:
+      type: integer
+      format: int32
+      description: speed in m per h (to allow for up to 3 positions after decimal point)
+    RemainingTrips:
+      type: object
+      properties:
+        predicted:
+          type: integer
+          format: int32
+          description: number of remaining trips for e-vehicles otherwise null
+        target:
+          type: integer
+          format: int32
+          description: number of trips till the end of the block; current trip excluded
+    GeoDirection:
+      type: object
+      properties:
+        angle:
+          type: integer
+          format: int32
+        displayText:
+          type: string
+    PositionState:
+      type: object
+      properties:
+        distance:
+          type: number
+          format: float
+          description: distance in per mill (of link between fromNetPoint and toNetPoint) measured from fromNetPoint
+        fromNetPoint:
+          $ref: "./common/schemas.yaml#/TripItineraryNodeIdentification"
+        toNetPoint:
+          $ref: "./common/schemas.yaml#/TripItineraryNodeIdentification"
+    VehicleTypeIdentification:
+      properties:
+        uid:
+          type: string
+        displayText:
+          type: string
+    VehicleRegistrationState:
+      type: string
+      enum:
+        - UNREGISTERED
+        - TECHNICAL
+        - OPERATIONAL
+        - EXTERNAL
+    SelectableVehiclesResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/SelectableVehicle"
+    SelectableVehicle:
+      description:
+        The operational data is present iff the registration state is OPERATIONAL or EXTERNAL. This does not
+        necessarily hold for the sub values. They could be non-existing even if the operational data itself is present.
+        For example, the driver data might not be present though the vehicle is operationally registered.
+      type: object
+      properties:
+        tenant:
+          type: string
+        identification:
+          $ref: "./common/schemas.yaml#/VehicleIdentification"
+        voiceRadioId:
+          type: string
+        registrationState:
+          $ref: "#/components/schemas/VehicleRegistrationState"
+        operational:
+          $ref: "#/components/schemas/VehicleOperationalData"
+        workingSet:
+          $ref: "#/components/schemas/WorkingSetIdentification"
+        type:
+          $ref: "#/components/schemas/VehicleTypeIdentification"
+      required:
+        - tenant
+        - identification
+        - registrationState
+      example:
+        tenant: "STO"
+        identification:
+          uid: "STO-1"
+          displayText: "STO/1"
+        voiceRadioId: "+49241470510"
+        registrationState: "OPERATIONAL"
+        workingSet:
+          displayText: "Aachen Nord"
+        type:
+          displayText: "Citaro G"
+        operational:
+          line:
+            displayText: "STO/E"
+          block:
+            displayText: "123"
+          trip:
+            numberInBlock: 1
+            displayText: "STO/5/1"
+          driver:
+            displayText: "Max Mustermann"
+    VehicleOperationalData:
+      type: object
+      properties:
+        line:
+          $ref: "./common/schemas.yaml#/LineIdentification"
+        block:
+          $ref: "./common/schemas.yaml#/BlockIdentification"
+        trip:
+          $ref: "./common/schemas.yaml#/TripIdentification"
+        driver:
+          $ref: "./common/schemas.yaml#/DriverIdentification"
+        duty:
+          $ref: "#/components/schemas/DutyIdentification"
+        route:
+          $ref: "./common/schemas.yaml#/RouteIdentification"
+    WorkingSetIdentification:
+      type: object
+      properties:
+        uid:
+          type: string
+        displayText:
+          type: string
+    VehicleStatesResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/VehicleState"
+    VehicleState:
+      description:
+        The operational data is present iff the registration state is OPERATIONAL or EXTERNAL. This does not
+        necessarily hold for the sub values. They could be non-existing even if the operational data itself is present.
+        For example, the driver data might not be present though the vehicle is operationally registered.
+        Note that the value of the property registrationState of items in the response will never be UNREGISTERED as
+        unregistered vehicles simply do not have a vehicle state.
+      type: object
+      properties:
+        tenant:
+          type: string
+        identification:
+          $ref: "./common/schemas.yaml#/VehicleIdentification"
+        voiceRadioId:
+          type: string
+        registrationState:
+          $ref: "#/components/schemas/VehicleRegistrationState"
+        operational:
+          $ref: "#/components/schemas/VehicleOperationalData"
+        workingSet:
+          $ref: "#/components/schemas/WorkingSetIdentification"
+        type:
+          $ref: "#/components/schemas/VehicleTypeIdentification"
+        lastUpdate:
+          $ref: "./common/schemas.yaml#/Timestamp"
+        deviation:
+          $ref: "./common/schemas.yaml#/Deviation"
+        gpsPosition:
+          $ref: "./common/schemas.yaml#/GpsPosition"
+        geoDirection:
+          $ref: "#/components/schemas/GeoDirection"
+        positionState:
+          $ref: "#/components/schemas/PositionState"
+        position:
+          $ref: "./common/schemas.yaml#/Position"
+        destination:
+          $ref: "./common/schemas.yaml#/Destination"
+        occupancy:
+          $ref: "./common/schemas.yaml#/Occupancy"
+        trailers:
+          $ref: "./common/schemas.yaml#/Trailers"
+        remainingRange:
+          $ref: "./common/schemas.yaml#/RemainingRange"
+        stateOfCharge:
+          $ref: "./common/schemas.yaml#/StateOfCharge"
+        remainingTrips:
+          $ref: "#/components/schemas/RemainingTrips"
+        speed:
+          $ref: "#/components/schemas/Speed"
+      required:
+        - tenant
+        - identification
+        - registrationState
+        - lastUpdate

@@ -1,0 +1,14 @@
+{
+  "inputs": [
+    { "inputFile": "./DisruptionReports.yaml" },
+    { "inputFile": "./Events.yaml" },
+    { "inputFile": "./Instructions.yaml" },
+    { "inputFile": "./Net.yaml" },
+    { "inputFile": "./OperationsLogs.yaml" },
+    { "inputFile": "./RadioMessages.yaml" },
+    { "inputFile": "./Tenants.yaml" },
+    { "inputFile": "./TripsAndBlocks.yaml" },
+    { "inputFile": "./Vehicles.yaml" }
+  ],
+  "output": "./output.yaml"
+}

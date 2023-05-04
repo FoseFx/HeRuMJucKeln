@@ -1,0 +1,233 @@
+openapi: 3.0.3
+info:
+  title: Operations logs
+  description: Specifications of the operations logs API endpoint.
+  version: 1.0.0
+tags:
+  - name: Operations logs
+    description: The operations logs contain entries for relevant business incidents that occurred during operation.
+servers:
+  - url: /fl
+  - url: /
+paths:
+  /gw/operationsLogs:
+    get:
+      tags:
+        - Operations logs
+      description: Returns all the currently available operations log entries sorted by logTimestamp in descending order.
+      operationId: retrieveOperationsLogs
+      parameters:
+        - $ref: "./common/parameters.yaml#/query/multipleTenants"
+        - name: limit
+          in: query
+          required: true
+          description: Maximum number of operations log entries in the response
+          schema:
+            type: integer
+            format: int32
+          example: 100
+        - name: offset
+          in: query
+          description:
+            The offset of the entries. The entries are sorted by log timestamp. E.g. an offset of 100 omits the
+            first 100 most recent entries.
+          schema:
+            type: integer
+            format: int32
+        - name: lastEntry
+          in: query
+          description:
+            The id of the last entry that was already loaded by the client of this API. The entries 'after'
+            this entry will be returned. Hence, it can be used to load a page 'after' an already loaded one.
+          schema:
+            type: string
+        - name: firstEntry
+          in: query
+          description:
+            The id of the first entry that was already loaded by the client of this API. The entries 'before'
+            this entry will be returned. Hence, it can be used to load a page 'before' an already loaded one.
+          schema:
+            type: string
+        - name: timeFrameStart
+          in: query
+          description:
+            The beginning of the time frame to query operations logs from. The time frame condition is applied
+            to the point in time an operations log entry was last modified at. If this parameter is not provided by the
+            client it defaults to the start of the current day. Must be provided as ISO 8601-1 string.
+          schema:
+            type: string
+        - name: timeFrameEnd
+          in: query
+          description:
+            The end of the time frame to query operations logs from. The time frame condition is applied
+            to the point in time an operations log entry was last modified at. If this parameter is not provided by the
+            client it defaults the current time (now). Must be provided as ISO 8601-1 string.
+          schema:
+            type: string
+        - $ref: "./common/parameters.yaml#/header/Accept-Language-Required"
+      responses:
+        400:
+          description:
+            Will be returned if the tenant is missing or there is no positive limit. Additionally,
+            either an offset or firstEntry or a lastEntry can be given. A combination of any of the three is illegal.
+        403:
+          $ref: "./common/responses.yaml#/NotAuthorizedForTenants"
+        404:
+          description: Will be returned iff tenants are unknown or the firstEntry/lastEntry is unknown.
+        200:
+          description:
+            An object holding the entries of the operations log entries and meta data regarding the
+            pagination. The result might not hold data for all given tenants. If a tenant is unknown or the user is not
+            authorized for, the tenant will be omitted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OperationsLogPage"
+    post:
+      tags:
+        - Operations logs
+      description:
+        Creates a new operations log entry. The entry must at least contain a text, a tenant and the user.
+        If the new entry shall be associated to a vehicle, then the property vehicle->uid shall be set.
+        The text will not be internationalized. It will be presented to every user as it was specified independently of
+        the user's language.
+      operationId: createOperationsLogEntry
+      requestBody:
+        description:
+          All readonly properties will be ignored. Furthermore, all referenced objects except for the
+          VehicleIdentification (so it can be used to provide the UID of a vehicle) will be ignored.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OperationsLogEntry"
+      responses:
+        200:
+          description:
+            Will be returned if the entry was created. The new entry with all its data is present in the
+            response body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OperationsLogEntry"
+        400:
+          description:
+            Will be returned if the request body is missing, does not contain the required information or
+            exceeds any limitations (e.g. number of characters of the text).
+        403:
+          description:
+            __Upcoming after introduction of auth__ Will be returned if the client tries to create an entry
+            for a tenant it is not authorized for.
+components:
+  schemas:
+    OperationsLogPage:
+      description: A page of operations log entries including the data itself and information about the pagination.
+      type: object
+      properties:
+        limit:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        firstEntry:
+          type: integer
+          format: int64
+          description: The UID of the first entry in the data set being returned.
+        lastEntry:
+          type: integer
+          format: int64
+          description: The UID of the last entry in the data set being returned.
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/OperationsLogEntry"
+    OperationsLogEntry:
+      description: A single entry of the operations log.
+      type: object
+      required:
+        - tenant
+        - text
+        - user
+      properties:
+        uid:
+          type: string
+          description: Unique identifier for the entry.
+          readOnly: true
+        logTimestamp:
+          type: string
+          format: date-time
+          description: The timestamp for logging this entry, i.e. storing it in the operations log.
+          readOnly: true
+        eventTimestamp:
+          type: string
+          format: date-time
+          description:
+            The timestamp of the event. In case of a logged disruption report logTimestamp will be after this
+            timestamp since the disruption report was created at the eventTimestamp and was moved to the operations log
+            after acknowledgment. The timestamp of the acknowledgement matches the logTimestamp.
+          readOnly: true
+        category:
+          $ref: "#/components/schemas/OperationsLogCategory"
+        tenant:
+          type: string
+        text:
+          type: string
+          maxLength: 512
+          description: The text content of the operations log entry
+        operatingDay:
+          type: string
+          format: date
+          readOnly: true
+        block:
+          $ref: "./common/schemas.yaml#/BlockIdentification"
+        line:
+          $ref: "./common/schemas.yaml#/LineIdentification"
+        trip:
+          $ref: "./common/schemas.yaml#/TripIdentification"
+        vehicle:
+          $ref: "./common/schemas.yaml#/VehicleIdentification"
+        voiceRadioId:
+          type: string
+          description: voice radio ID of the vehicle
+          readOnly: true
+        deviation:
+          $ref: "./common/schemas.yaml#/Deviation"
+        driver:
+          $ref: "./common/schemas.yaml#/DriverIdentification"
+        occupancy:
+          # The occupancy will never hold the passenger count since it is not stored.
+          $ref: "./common/schemas.yaml#/Occupancy"
+        trailers:
+          $ref: "./common/schemas.yaml#/Trailers"
+        remainingRange:
+          $ref: "./common/schemas.yaml#/RemainingRange"
+        stateOfCharge:
+          $ref: "./common/schemas.yaml#/StateOfCharge"
+        position:
+          $ref: "./common/schemas.yaml#/Position"
+        destination:
+          $ref: "./common/schemas.yaml#/Destination"
+        user:
+          type: string
+        comment:
+          type: string
+          description: Will be empty for the beginning.
+    OperationsLogCategory:
+      description: Is the enumeration for the 'H' column in the old client.
+      readOnly: true
+      type: string
+      enum:
+        - CALL
+        - DISPATCH_ACTION
+        - CALL_WITH_MANUAL_LOG_ENTRY
+        - MANUAL_LOG_ENTRY
+        - ACKNOWLEDGMENT
+        - MONITORING
+        - AUTO_ACKNOWLEDGMENT
+        - ENCODED_INSTRUCTION
+        - FAILED_ACTION
+        - TEXT_INSTRUCTION
+        - JOBMANAGEMENT
+        - INITIATED_BY_DRIVER
+        - EXTERNALLY_INITIATED
+        - EMPTY

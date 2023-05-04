@@ -1,0 +1,43 @@
+openapi: 3.0.3
+info:
+  title: Tenants
+  description: Specifications of the tenants API endpoints.
+  version: 1.0.0
+tags:
+  - name: Tenants
+    description: Endpoints relating to tenants of the system.
+servers:
+  - url: /fl
+  - url: /
+paths:
+  /gw/tenants:
+    get:
+      tags:
+        - Tenants
+      description: Retrieves a list of all tenants available in the system.
+      operationId: retrieveTenants
+      responses:
+        200:
+          description: The list of all tenants.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantsResponse"
+components:
+  schemas:
+    Tenant:
+      description: An object representing a tenant.
+      type: object
+      properties:
+        displayText:
+          type: string
+        uid:
+          type: string
+    TenantsResponse:
+      description: An object providing a list of all available tenants in the data field.
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tenant"

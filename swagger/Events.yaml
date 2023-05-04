@@ -1,0 +1,213 @@
+openapi: 3.0.3
+info:
+  title: Events
+  description: Specifications of the API endpoints of events.
+  version: 1.0.0
+tags:
+  - name: Events
+    description: Relevant business events, e.g. incidents, that occurred during operation.
+  - name: Updates on events
+    description:
+      Control registration on updates for events. __Hint:__ At some point we will use the same
+      base path for every endpoint
+servers:
+  - url: /fl
+  - url: /
+paths:
+  /gw/events:
+    get:
+      tags:
+        - Events
+      description: Returns all currently available events matching the query parameter criteria.
+      operationId: retrieveEvents
+      parameters:
+        - name: vehicleUid
+          in: query
+          description: The UID of the vehicle to return the currently associated events for.
+          required: true
+          schema:
+            type: string
+        - name: timeFrameStart
+          in: query
+          description:
+            The beginning of the time frame to query events from. The time frame condition is applied
+            to the point in time an event was created / began to exist. If this parameter is not provided by the
+            client a default value is used. Must be provided as ISO 8601-1 string.
+          required: false
+          schema:
+            type: string
+        - name: timeFrameEnd
+          in: query
+          description:
+            The end of the time frame to query events from. The time frame condition is applied
+            to the point in time an event was created / began to exist. If this parameter is not provided by the
+            client it defaults to the current time (now). Must be provided as ISO 8601-1 string.
+          required: false
+          schema:
+            type: string
+        - $ref: "./common/parameters.yaml#/header/Accept-Language-Required"
+      responses:
+        200:
+          description: The data of all events matching the given query parameters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventsResponse"
+        400:
+          description: Will be returned e.g. if the query parameter vehicleUid is missing or not understood.
+          content:
+            text/plain:
+              schema:
+                type: string
+        403:
+          $ref: "./common/responses.yaml#/NotAuthorizedForTenants"
+        404:
+          description:
+            Will be returned e.g. if the query parameter vehicleUid is referencing an unknown
+            vehicle.
+          content:
+            text/plain:
+              schema:
+                type: string
+  /events/updates/subscriptions:
+    post:
+      tags:
+        - Updates on events
+      description: Creates a subscription for updates. The response contains the ID to identify the subscription by.
+      operationId: registerForEventUpdates
+      parameters:
+        - $ref: "./common/parameters.yaml#/header/Accept-Language-Optional"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventsSubscriptionRequestBody"
+        required: true
+      responses:
+        400:
+          $ref: "./common/responses.yaml#/MissingRequestBody"
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "./common/schemas.yaml#/SubscriptionResponse"
+  /events/updates/subscriptions/{subscriptionId}:
+    delete:
+      tags:
+        - Updates on events
+      description: Removes the subscription with the given subscription ID.
+      operationId: deregisterForEventUpdates
+      parameters:
+        - $ref: "./common/parameters.yaml#/path/subscriptionId"
+      responses:
+        404:
+          $ref: "./common/responses.yaml#/SubscriptionNotFound"
+        400:
+          $ref: "./common/responses.yaml#/MissingSubscriptionId"
+        200:
+          $ref: "./common/responses.yaml#/PlainOk"
+    put:
+      tags:
+        - Updates on events
+      description:
+        Changes an existing subscription to the parameters supplied with the request body. This method can be
+        used while already retrieving the update stream of the subscription. The changes are applied immediately.
+      operationId: modifySubscriptionForEvents
+      parameters:
+        - $ref: "./common/parameters.yaml#/header/Accept-Language-Optional"
+        - $ref: "./common/parameters.yaml#/path/subscriptionId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventsSubscriptionRequestBody"
+        required: true
+      responses:
+        404:
+          $ref: "./common/responses.yaml#/SubscriptionNotFound"
+        400:
+          $ref: "./common/responses.yaml#/MissingSubscriptionId"
+        200:
+          $ref: "./common/responses.yaml#/PlainOk"
+  /events/updates:
+    get:
+      tags:
+        - Updates on events
+      description:
+        Retrieves the update stream for a previously registered subscription identified by its subscription
+        ID.
+      operationId: retrieveUpdatesForEvents
+      parameters:
+        - $ref: "./common/parameters.yaml#/query/subscriptionId"
+      responses:
+        404:
+          $ref: "./common/responses.yaml#/SubscriptionNotFound"
+        400:
+          $ref: "./common/responses.yaml#/MissingSubscriptionId"
+        200:
+          description: OK
+          content:
+            text/event-stream:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EventChange"
+components:
+  schemas:
+    EventsResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Event"
+    Event:
+      type: object
+      required:
+        - uid
+        - creationTime
+        - text
+        - type
+      properties:
+        uid:
+          type: string
+        creationTime:
+          $ref: "./common/schemas.yaml#/Timestamp"
+        text:
+          type: string
+        type:
+          type: string
+        affectedObjects:
+          description: the objects which are affected by this event
+          type: object
+          properties:
+            vehicles:
+              type: array
+              items:
+                $ref: "./common/schemas.yaml#/VehicleIdentification"
+    EventsSubscriptionRequestBody:
+      type: object
+      properties:
+        filterKeys:
+          type: array
+          items:
+            $ref: "#/components/schemas/EventsFilterSpec"
+          example:
+            - vehicleUid: ["i~STO~2308"]
+    EventsFilterSpec:
+      type: object
+      properties:
+        vehicleUid:
+          type: array
+          items:
+            type: string
+    EventChange:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          $ref: "#/components/schemas/Event"
+      allOf:
+        - $ref: "./common/schemas.yaml#/BasicChange"
