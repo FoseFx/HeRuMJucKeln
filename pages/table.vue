@@ -1,3 +1,3 @@
 <template>
-  <h1>Die Tabelle Page</h1>
+  <TheTable />
 </template>
