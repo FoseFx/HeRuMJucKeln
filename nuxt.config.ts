@@ -35,5 +35,5 @@ export default defineNuxtConfig({
       },
     },
   },
-  css: ["@/assets/reset.css"],
+  css: ["@/assets/css/reset.css", "@/assets/css/styles.css"],
 });

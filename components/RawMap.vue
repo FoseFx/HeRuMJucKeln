@@ -1,29 +1,31 @@
 <template>
-  <MapboxMap
-    :access-token="config.mapbox.pk"
-    :map-style="mapStyle"
-    :center="center"
-    :zoom="zoom"
-  >
-    <!-- TODO: Place markers according to busses
+  <div class="map-container">
+    <MapboxMap
+      :access-token="config.mapbox.pk"
+      :map-style="mapStyle"
+      :center="center"
+      :zoom="zoom"
+    >
+      <!-- TODO: Place markers according to busses
         All properties but position can be left out
     -->
-    <MapMarker
-      :position="[6.07998, 50.77791]"
-      type="rectangle"
-      color="blue"
-      border-color="red"
-      @mouseover="() => {}"
-      @click="() => {}"
-    />
-    <!-- Custom Marker -->
-    <MapMarker :position="[6.083, 50.77791]">
-      <template #default>
-        <v-icon icon="mdi-map-marker"></v-icon>
-      </template>
-    </MapMarker>
-    <MapboxNavigationControl position="bottom-left" />
-  </MapboxMap>
+      <MapMarker
+        :position="[6.07998, 50.77791]"
+        type="rectangle"
+        color="blue"
+        border-color="red"
+        @mouseover="() => {}"
+        @click="() => {}"
+      />
+      <!-- Custom Marker -->
+      <MapMarker :position="[6.083, 50.77791]">
+        <template #default>
+          <v-icon icon="mdi-map-marker"></v-icon>
+        </template>
+      </MapMarker>
+      <MapboxNavigationControl position="bottom-left" />
+    </MapboxMap>
+  </div>
 </template>
 
 <script setup lang="ts">

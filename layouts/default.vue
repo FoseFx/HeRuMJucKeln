@@ -9,15 +9,10 @@
   </div>
 </template>
 
-<style>
-html.dark {
-  background: #0b0b0b;
-  color: white;
-}
-</style>
-
 <style scoped>
 .content {
   margin-left: 3.5rem;
+  height: calc(100vh - 3.5rem);
+  width: 100%;
 }
 </style>
