@@ -4,9 +4,9 @@
       <slot name="content"></slot>
     </v-col>
     <v-col v-if="open" cols="4">
-      <v-card class="color" :class="{ dark }" style="height: 100%">
+      <v-card class="sidebar">
         <template #prepend>
-          <v-btn :color="dark ? 'black' : 'white'" icon @click="closeSidebar"
+          <v-btn icon @click="closeSidebar"
             ><v-icon icon="mdi-close"></v-icon
           ></v-btn>
         </template>
@@ -21,7 +21,6 @@
 
 <script lang="ts" setup>
 const open = ref(true);
-const dark = useDark();
 
 const emit = defineEmits(["close"]);
 
@@ -32,3 +31,15 @@ function closeSidebar() {
 
 defineProps<{ title: string }>();
 </script>
+
+<style scoped>
+.v-col {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+.v-col > .v-card {
+  padding: 1em;
+  height: 100%;
+}
+</style>

@@ -8,7 +8,6 @@
 const dark = useDark();
 const toggleDark = useToggle(dark);
 </script>
-
 <style scoped>
 button {
   display: flex;

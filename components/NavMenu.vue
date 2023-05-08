@@ -55,6 +55,6 @@ a {
   background: #e1e1e1;
 }
 .dark .router-link-active {
-  background: #1e1e1e;
+  background: #444;
 }
 </style>

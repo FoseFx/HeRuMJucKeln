@@ -15,7 +15,6 @@ export default defineNuxtConfig({
   },
   modules: ["@vueuse/nuxt", "@invictus.codes/nuxt-vuetify"],
   vuetify: {
-    vuetifyOptions: {},
     moduleOptions: {
       treeshaking: true,
       styles: true,
