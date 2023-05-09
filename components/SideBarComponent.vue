@@ -1,22 +1,22 @@
 <template>
-  <v-row style="overflow: hidden">
-    <v-col :cols="open ? 8 : 12">
+  <VRow style="overflow: hidden">
+    <VCol :cols="open ? 8 : 12">
       <slot name="content"></slot>
-    </v-col>
-    <v-col v-if="open" cols="4">
-      <v-card class="sidebar">
+    </VCol>
+    <VCol v-if="open" cols="4">
+      <VCard class="sidebar">
         <template #prepend>
-          <v-btn icon @click="closeSidebar"
-            ><v-icon icon="mdi-close"></v-icon
-          ></v-btn>
+          <VBtn icon @click="closeSidebar">
+            <VIcon icon="mdi-close" />
+          </VBtn>
         </template>
         <template #title>
-          <v-card-title>{{ title }}</v-card-title>
+          <VCardTitle>{{ title }}</VCardTitle>
         </template>
         <slot name="sidebar"></slot>
-      </v-card>
-    </v-col>
-  </v-row>
+      </VCard>
+    </VCol>
+  </VRow>
 </template>
 
 <script lang="ts" setup>

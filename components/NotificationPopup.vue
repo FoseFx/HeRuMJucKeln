@@ -1,6 +1,6 @@
 <template>
   <div class="notification-popup-list">
-    <v-alert
+    <VAlert
       v-for="notification in recentNotifications.reverse()"
       :key="notification.id"
       type="info"
@@ -8,7 +8,7 @@
       color="red"
       class="mb-1"
       closable
-      >{{ notification.message }}</v-alert
+      >{{ notification.message }}</VAlert
     >
   </div>
 </template>

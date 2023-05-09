@@ -1,10 +1,5 @@
 <template>
-  <v-data-table
-    :headers="headers"
-    :items="items"
-    must-sort
-    sort-desc
-  ></v-data-table>
+  <VDataTable :headers="headers" :items="items" must-sort sort-desc />
 </template>
 <script setup lang="ts">
 // TODO: fix prefix sorting

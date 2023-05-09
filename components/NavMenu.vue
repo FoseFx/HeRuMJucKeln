@@ -1,16 +1,16 @@
 <template>
   <nav>
     <NuxtLink to="/map" title="Karte anzeigen">
-      <v-icon icon="mdi-map" />
+      <VIcon icon="mdi-map" />
     </NuxtLink>
     <NuxtLink to="/table" title="Tabelle anzeigen">
-      <v-icon icon="mdi-table" />
+      <VIcon icon="mdi-table" />
     </NuxtLink>
     <NuxtLink to="/log" title="Ereignistabelle anzeigen">
-      <v-icon icon="mdi-format-list-bulleted" />
+      <VIcon icon="mdi-format-list-bulleted" />
     </NuxtLink>
     <NuxtLink v-if="config.isDev" to="/dev" title="Entwicklerseite anzeigen">
-      <v-icon icon="mdi-wrench" />
+      <VIcon icon="mdi-wrench" />
     </NuxtLink>
     <div style="flex: 1"></div>
     <ThemeSwitch />

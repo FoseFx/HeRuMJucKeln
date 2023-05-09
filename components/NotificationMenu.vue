@@ -1,30 +1,30 @@
 <template>
-  <v-menu
+  <VMenu
     v-model="menuOpen"
     :close-on-content-click="false"
     location="bottom left"
   >
     <template #activator="{ props }">
-      <v-badge
+      <VBadge
         bottom
         :content="unreadNotificationCount"
         :model-value="unreadNotificationCount > 0"
         location="start"
         color="red"
       >
-        <v-btn icon v-bind="props"><v-icon icon="mdi-bell" /></v-btn>
-      </v-badge>
+        <VBtn icon v-bind="props"><VIcon icon="mdi-bell" /></VBtn>
+      </VBadge>
     </template>
-    <v-card class="notification-box">
-      <v-list>
+    <VCard class="notification-box">
+      <VList>
         <NotificationEntry
           v-for="notification of sortedNotifications"
           :key="notification.id"
           :notification="notification"
         />
-      </v-list>
-    </v-card>
-  </v-menu>
+      </VList>
+    </VCard>
+  </VMenu>
 </template>
 
 <script setup lang="ts">

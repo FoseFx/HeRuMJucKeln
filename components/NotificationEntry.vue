@@ -1,16 +1,13 @@
 <template>
   <span>
-    <v-list-item
-      :class="{ unread: !notification.read }"
-      class="m-3 notification"
-    >
+    <VListItem :class="{ unread: !notification.read }" class="m-3 notification">
       <div>
         {{ notification.message }}
       </div>
       <div class="date-display">
         {{ date.format(notification.date, "DD.MM, HH:mm") }}
       </div>
-    </v-list-item>
+    </VListItem>
   </span>
 </template>
 

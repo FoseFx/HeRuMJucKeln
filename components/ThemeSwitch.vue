@@ -1,6 +1,6 @@
 <template>
   <button :title="dark ? 'Hell machen' : 'Dunkel machen'" @click="toggleDark()">
-    <v-icon icon="mdi-theme-light-dark" />
+    <VIcon icon="mdi-theme-light-dark" />
   </button>
 </template>
 

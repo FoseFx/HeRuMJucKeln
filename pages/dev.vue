@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1>Development Page</h1>
-    <v-btn @click="addNotification">Add new notification</v-btn>
+    <VBtn @click="addNotification">Add new notification</VBtn>
   </div>
 </template>
 

@@ -21,7 +21,7 @@
       <!-- Custom Marker -->
       <MapMarker :position="[6.083, 50.77791]">
         <template #default>
-          <v-icon icon="mdi-map-marker"></v-icon>
+          <VIcon icon="mdi-map-marker" />
         </template>
       </MapMarker>
       <!-- Bus marker with popup can be placed on the map -->
