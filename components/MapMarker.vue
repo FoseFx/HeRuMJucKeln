@@ -1,23 +1,33 @@
 <template>
   <MapboxMarker :lng-lat="position">
-    <div
-      style="cursor: pointer"
-      @mouseover="$emit('mouseover')"
-      @click="$emit('click')"
+    <v-menu
+      open-on-hover
+      :close-on-content-click="false"
+      :disabled="!$slots.popup"
     >
-      <slot>
+      <template #activator="{ on, props }">
         <div
-          :style="{
-            background: color ?? (dark ? 'black' : 'white'),
-            width: size,
-            height: size,
-            borderColor: borderColor ?? (dark ? 'white' : 'black'),
-          }"
-          class="marker"
-          :class="type"
-        ></div>
-      </slot>
-    </div>
+          style="cursor: pointer"
+          v-bind="props"
+          v-on="on"
+          @click="$emit('click')"
+        >
+          <slot>
+            <div
+              :style="{
+                background: color ?? (dark ? 'black' : 'white'),
+                width: size,
+                height: size,
+                borderColor: borderColor ?? (dark ? 'white' : 'black'),
+              }"
+              class="marker"
+              :class="type"
+            ></div>
+          </slot>
+        </div>
+      </template>
+      <slot name="popup" />
+    </v-menu>
   </MapboxMarker>
 </template>
 
@@ -32,7 +42,7 @@ defineProps<{
   type?: "circle" | "rectangle";
 }>();
 
-defineEmits(["mouseover", "click"]);
+defineEmits(["click"]);
 
 const dark = useDark();
 </script>

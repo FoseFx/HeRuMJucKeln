@@ -24,6 +24,8 @@
           <v-icon icon="mdi-map-marker"></v-icon>
         </template>
       </MapMarker>
+      <!-- Bus marker with popup can be placed on the map -->
+      <BusMarker :bus-id="123"></BusMarker>
       <MapboxNavigationControl position="bottom-left" />
     </MapboxMap>
   </div>
