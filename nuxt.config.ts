@@ -9,9 +9,10 @@ export default defineNuxtConfig({
   },
   ssr: false,
   app: {
-    baseURL: isDev
-      ? "/"
-      : "/teaching/summer-term-2023/daten-die-uns-bewegen/herumjuckeln/herumjuckeln/",
+    baseURL:
+      process.env.NUXT_BASE_URL || isDev
+        ? "/"
+        : "/teaching/summer-term-2023/daten-die-uns-bewegen/herumjuckeln/herumjuckeln/",
   },
   modules: ["@vueuse/nuxt", "@invictus.codes/nuxt-vuetify"],
   vuetify: {
