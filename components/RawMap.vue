@@ -7,25 +7,7 @@
       :zoom="zoom"
       @mb-created="onMapCreated"
     >
-      <!-- TODO: Place markers according to busses
-        All properties but position can be left out
-    -->
-      <MapMarker
-        :position="[6.07998, 50.77791]"
-        type="rectangle"
-        color="blue"
-        border-color="red"
-        @mouseover="() => {}"
-        @click="() => {}"
-      />
-      <!-- Custom Marker -->
-      <MapMarker :position="[6.083, 50.77791]">
-        <template #default>
-          <VIcon icon="mdi-map-marker" />
-        </template>
-      </MapMarker>
-      <!-- Bus marker with popup can be placed on the map -->
-      <BusMarker :bus-id="123"></BusMarker>
+      <BussesOnMap @click="onBusClick" />
       <MapboxNavigationControl position="bottom-left" />
     </MapboxMap>
   </div>
@@ -57,6 +39,11 @@ function addScaleIndicator(map: Map) {
 
 function onMapCreated(map: Map) {
   addScaleIndicator(map);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function onBusClick(id: string) {
+  // Open sidebar
 }
 </script>
 

@@ -9,6 +9,16 @@
  * ---------------------------------------------------------------
  */
 
+export interface GpsPosition {
+  latitude: number;
+  longitude: number;
+}
+
+export interface BusIdentification {
+  uid: string;
+  displayText: string;
+}
+
 export interface DisruptionReportsResponse {
   data?: DisruptionReport[];
 }
@@ -590,7 +600,7 @@ export interface VehicleStatesResponse {
 /** The operational data is present iff the registration state is OPERATIONAL or EXTERNAL. This does not necessarily hold for the sub values. They could be non-existing even if the operational data itself is present. For example, the driver data might not be present though the vehicle is operationally registered. Note that the value of the property registrationState of items in the response will never be UNREGISTERED as unregistered vehicles simply do not have a vehicle state. */
 export interface VehicleState {
   tenant: string;
-  identification: any;
+  identification: BusIdentification;
   voiceRadioId?: string;
   registrationState: VehicleRegistrationState;
   operational?: VehicleOperationalData;
@@ -598,7 +608,7 @@ export interface VehicleState {
   type?: VehicleTypeIdentification;
   lastUpdate: any;
   deviation?: any;
-  gpsPosition?: any;
+  gpsPosition?: GpsPosition;
   geoDirection?: GeoDirection;
   positionState?: PositionState;
   position?: any;

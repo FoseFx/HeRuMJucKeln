@@ -24,8 +24,7 @@ const addNotification = () => {
 };
 
 function fetchVehicles() {
-  const client = useAPI();
-  client.vehicles
+  api.vehicles
     .retrieveSelectableVehicles({
       tenant: ["IVU", "STO"],
       registrationState: [VehicleRegistrationState.OPERATIONAL],
