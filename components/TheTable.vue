@@ -1,9 +1,18 @@
 <template>
+  <v-text-field
+    v-model="search"
+    append-icon="mdi-magnify"
+    label="Search"
+    single-line
+    hide-details
+    class="searchbar"
+  ></v-text-field>
   <VDataTable :headers="headers" :items="items" must-sort sort-desc />
 </template>
 <script setup lang="ts">
 // TODO: fix prefix sorting
 import { VDataTable } from "vuetify/labs/VDataTable";
+const search = ref("");
 type DataTableHeader = {
   key: string;
   title: string;
@@ -84,3 +93,8 @@ const items = [
   },
 ];
 </script>
+<style scoped>
+.searchbar {
+  width: 50%;
+}
+</style>
