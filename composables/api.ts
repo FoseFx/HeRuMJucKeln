@@ -1,7 +1,44 @@
-import { Api } from "../swagger/Api";
+import type {
+  VehicleStatesResponse,
+  VehicleRegistrationState,
+} from "~/swagger/Api";
 
-const client = new Api({ baseUrl: "https://rwth.ivu.de" });
+export function useAPI() {
+  const { apiHost } = useRuntimeConfig().public;
 
-export function useAPI(): typeof client {
-  return client;
+  return {
+    vehicles: {
+      retrieveSelectableVehicles(
+        params: {
+          tenant?: string[];
+          registrationState?: VehicleRegistrationState[];
+        } = {}
+      ) {
+        const url = new URL(apiHost + "/gw/selectableVehicles");
+        const queryParams = new URLSearchParams();
+        appendArrToQueryParams("tenant", queryParams, params.tenant);
+        appendArrToQueryParams(
+          "registrationState",
+          queryParams,
+          params.registrationState
+        );
+        url.search = queryParams.toString();
+        return $fetch<VehicleStatesResponse>(url.toString()).then(
+          (r) => r.data
+        );
+      },
+    },
+  };
+}
+
+function appendArrToQueryParams(
+  key: string,
+  queryParams: URLSearchParams,
+  arr?: Object[]
+) {
+  if (arr) {
+    for (const el of arr) {
+      queryParams.append(key, el.toString());
+    }
+  }
 }

@@ -33,6 +33,7 @@ export default defineNuxtConfig({
           dark: "mapbox://styles/fosefx/clgobc19v00gn01qxgrex6vms", // Decimal Dark
         },
       },
+      apiHost: "https://rwth.ivu.de/fl",
     },
   },
   css: [
