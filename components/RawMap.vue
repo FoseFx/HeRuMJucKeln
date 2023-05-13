@@ -1,6 +1,7 @@
 <template>
   <div class="map-container">
     <MapboxMap
+      :key="mapStyle"
       :access-token="config.mapbox.pk"
       :map-style="mapStyle"
       :center="center"
