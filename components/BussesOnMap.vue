@@ -1,6 +1,6 @@
 <template>
-  <MapboxSource id="busses-source" :options="source"></MapboxSource>
-  <MapboxLayer id="busses" :options="layer"></MapboxLayer>
+  <MapboxSource :id="BUS_SOURCE_ID" :options="source"></MapboxSource>
+  <MapboxLayer :id="BUS_LAYER_ID" :options="busLayer"></MapboxLayer>
   <MapboxPopup
     v-if="popupCoordinates && popupVehicleState"
     :close-button="false"
@@ -17,39 +17,94 @@ import {
   MapboxPopup,
   MapboxSource,
 } from "@studiometa/vue-mapbox-gl";
+import { GeoJSONSourceRaw, Layer, Map, MapLayerMouseEvent } from "mapbox-gl";
+import { Position } from "geojson";
 import { VehicleState } from "~/swagger/Api";
+import { FilterSidebarState } from "~/composables/states";
+
+const props = defineProps<{ filterSidebarState: FilterSidebarState }>();
+
+// Constants
+const BUS_LAYER_ID = "busses";
+const BUS_SOURCE_ID = "busses-source";
 
 const emit = defineEmits(["click"]);
 
-const popupCoordinates = ref<null | [number, number]>(null);
+// mapbox-map is provided by the MapboxMap component
+const map = inject<Ref<Map>>("mapbox-map");
+if (!map) {
+  throw new Error("mapbox-map could not be injected into BussesOnMap");
+}
 
+// State
+const popupCoordinates = ref<null | Position>(null);
 const popupVehicleState = ref<null | VehicleState>(null);
 
-// Use injected value as in https://github.com/studiometa/vue-mapbox-gl/blob/develop/packages/vue-mapbox-gl/composables/useMap.js
-const map = inject<any>("mapbox-map");
+//
+// Mouse Enter
+//
 
-// See example at https://docs.mapbox.com/mapbox-gl-js/example/popup-on-hover/
-map.value.on("mouseenter", "busses", (e: any) => {
+const onBusLayerMouseEnter = (e: MapLayerMouseEvent) => {
+  // See example at https://docs.mapbox.com/mapbox-gl-js/example/popup-on-hover/
+
   // Change the cursor style as a UI indicator.
   map.value.getCanvas().style.cursor = "pointer";
 
-  popupCoordinates.value = e.features[0].geometry.coordinates.slice();
+  // get selected feature
+  // a feature is an element on the map we added
+  const selectedFeature = e.features?.[0];
 
-  popupVehicleState.value = getVehicle(e.features[0].properties.vehicle);
-});
-map.value.on("mouseleave", "busses", () => {
+  if (!selectedFeature) {
+    return; // mouse is not on a feature
+  }
+
+  const { properties, geometry } = selectedFeature;
+
+  if (geometry.type !== "Point" || !properties) {
+    return; // we are not on a bus, as busses are points and have custom properties
+  }
+
+  popupCoordinates.value = geometry.coordinates.slice(); // copy coords
+  popupVehicleState.value = vehicleForMapboxEvent(e);
+};
+map.value.on("mouseenter", "busses", onBusLayerMouseEnter);
+onUnmounted(() => map.value.off("mouseenter", "busses", onBusLayerMouseEnter));
+
+//
+// Mouse Leave
+//
+
+const onBusLayerMouseLeave = () => {
   map.value.getCanvas().style.cursor = "";
-
   popupCoordinates.value = null;
-});
-map.value.on("click", "busses", (e: any) => {
-  const id = getVehicle(e.features[0].properties.vehicle).identification.uid;
-  emit("click", id);
-});
+  popupVehicleState.value = null;
+};
+map.value.on("mouseleave", "busses", onBusLayerMouseLeave);
+onUnmounted(() => map.value.off("mouseleave", "busses", onBusLayerMouseLeave));
 
-const layer = {
+//
+// Mouse Click
+//
+
+const onBusLayerMouseClick = (e: MapLayerMouseEvent) => {
+  const vehicle = vehicleForMapboxEvent(e);
+  if (!vehicle) {
+    return;
+  }
+  const id = vehicle.identification.uid;
+  emit("click", id);
+};
+map.value.on("click", "busses", onBusLayerMouseClick);
+onUnmounted(() => map.value.off("click", "busses", onBusLayerMouseClick));
+
+//
+// Data
+//
+
+const busLayer: Layer = {
+  id: BUS_LAYER_ID,
   type: "circle",
-  source: "busses-source", // reference the data source
+  source: BUS_SOURCE_ID, // reference the data source
   layout: {},
   paint: {
     "circle-radius": 6,
@@ -58,40 +113,61 @@ const layer = {
   },
 };
 
-// Get data from API
-const tenants = ["IVU", "STO"];
+const allVehicles = useVehicleStates();
 
-const vehicles = useVehicleStates(tenants);
+const filteredVehicles = computed(() => {
+  if (!allVehicles.value) {
+    return [];
+  }
+  let filtered = allVehicles.value.filter((vehicle) => vehicle.gpsPosition);
 
-const vehiclesWithPosition = computed(() => {
-  return (
-    vehicles.value?.filter((vehicle) => vehicle.gpsPosition !== undefined) ?? []
-  );
+  const onlyShowLinesFilter =
+    props.filterSidebarState.onlyShowLinesFilter.value;
+
+  if (onlyShowLinesFilter !== null) {
+    filtered = filtered.filter((v) =>
+      onlyShowLinesFilter.find((l) => v.operational?.line?.uid === l)
+    );
+  }
+
+  return filtered;
 });
 
 // Transform API-Data to source for map
-const source = computed(() => ({
-  type: "geojson",
-  data: {
-    type: "FeatureCollection",
-    // These coordinates outline Maine.
-    features: vehiclesWithPosition.value.map((vehicle) => ({
-      type: "Feature",
-      properties: {
-        vehicle,
+const source: Ref<GeoJSONSourceRaw> = computed(
+  () =>
+    ({
+      type: "geojson",
+      data: {
+        type: "FeatureCollection",
+        features: filteredVehicles.value.map((vehicle, i) => ({
+          type: "Feature",
+          properties: {
+            vehicleIndex: i,
+          },
+          geometry: {
+            type: "Point",
+            coordinates: [
+              vehicle.gpsPosition!.longitude,
+              vehicle.gpsPosition!.latitude,
+            ],
+          },
+        })),
       },
-      geometry: {
-        type: "Point",
-        coordinates: [
-          vehicle.gpsPosition?.longitude,
-          vehicle.gpsPosition?.latitude,
-        ],
-      },
-    })),
-  },
-}));
+    } as GeoJSONSourceRaw)
+);
 
-function getVehicle(vehicle: string): VehicleState {
-  return JSON.parse(vehicle);
+function vehicleForMapboxEvent(e: MapLayerMouseEvent) {
+  const vehicleIndex = e.features?.[0].properties?.vehicleIndex;
+  if (typeof vehicleIndex !== "number") {
+    return null; // not a bus
+  }
+  const vehicle = filteredVehicles.value[vehicleIndex];
+  if (!vehicle) {
+    // eslint-disable-next-line no-console
+    console.warn("a feature has an invalid vehicle index", vehicleIndex, e);
+    return null;
+  }
+  return vehicle;
 }
 </script>

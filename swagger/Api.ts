@@ -9,6 +9,12 @@
  * ---------------------------------------------------------------
  */
 
+// we added this, it is not used when talking to the API
+export type Line = {
+  id: string;
+  name: string;
+};
+
 export interface GpsPosition {
   latitude: number;
   longitude: number;
@@ -580,7 +586,10 @@ export interface SelectableVehicle {
 }
 
 export interface VehicleOperationalData {
-  line?: any;
+  line?: {
+    uid?: string;
+    displayText?: string;
+  };
   block?: any;
   trip?: any;
   driver?: any;

@@ -1,9 +1,15 @@
-import { VehicleState } from "~/swagger/Api";
+import { UsePromiseResult, usePromise } from "vue-promised";
+import { VehicleState, Line } from "~/swagger/Api";
 
-export function useVehicleStates(tenant: string[]) {
+export function useVehicleStates(tenants?: string[]) {
   const vehicleStates = ref<VehicleState[]>([]);
   const request = async () => {
-    const states = await api.vehicles.retrieveVehicleStates({ tenant });
+    if (!tenants) {
+      tenants = await api.tenants.retrieveTenants();
+    }
+    const states = await api.vehicles.retrieveVehicleStates({
+      tenant: tenants,
+    });
     if (states !== undefined) {
       vehicleStates.value = states;
     }
@@ -12,4 +18,14 @@ export function useVehicleStates(tenant: string[]) {
   request();
 
   return vehicleStates;
+}
+
+let lines: UsePromiseResult<Line[]> | null = null; // global state, don't re-fetch lines every time
+export function useLines() {
+  if (lines === null || !lines.isRejected) {
+    const promiseRef = ref(api.custom.retrieveLines());
+    lines = usePromise(promiseRef);
+  }
+
+  return { ...lines };
 }

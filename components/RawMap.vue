@@ -7,7 +7,7 @@
       :zoom="zoom"
       @mb-created="onMapCreated"
     >
-      <BussesOnMap @click="onBusClick" />
+      <slot />
       <MapboxNavigationControl position="bottom-left" />
     </MapboxMap>
   </div>
@@ -39,11 +39,6 @@ function addScaleIndicator(map: Map) {
 
 function onMapCreated(map: Map) {
   addScaleIndicator(map);
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function onBusClick(id: string) {
-  // Open sidebar
 }
 </script>
 

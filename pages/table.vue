@@ -4,16 +4,16 @@
       <TheTable />
       <FilterSidebarBtn
         v-if="!isFilterSidebarOpen"
-        @click="openFilterSidebar()"
+        :state="filterSidebarState"
       />
     </VCol>
     <VCol v-if="isFilterSidebarOpen" :cols="3">
-      <FilterSidebar @close="closeFilterSidebar()" />
+      <FilterSidebar :state="filterSidebarState" />
     </VCol>
   </VRow>
 </template>
 
 <script setup lang="ts">
-const { isFilterSidebarOpen, openFilterSidebar, closeFilterSidebar } =
-  useFilterSidebar("table");
+const filterSidebarState = useFilterSidebar("table");
+const { isFilterSidebarOpen } = filterSidebarState;
 </script>

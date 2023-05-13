@@ -8,7 +8,17 @@ export type InternalNotification = {
 export const useNotifications = () =>
   useState<InternalNotification[]>("notifications", () => []);
 
-export function useFilterSidebar(storageKey?: string, initialState = true) {
+export type FilterSidebarState = {
+  isFilterSidebarOpen: Ref<boolean>;
+  onlyShowLinesFilter: Ref<string[] | null>;
+  openFilterSidebar: () => void;
+  closeFilterSidebar: () => void;
+};
+
+export function useFilterSidebar(
+  storageKey?: string,
+  initialState = true
+): FilterSidebarState {
   let isFilterSidebarOpen = ref(initialState);
 
   if (storageKey) {
@@ -18,8 +28,11 @@ export function useFilterSidebar(storageKey?: string, initialState = true) {
     );
   }
 
+  const onlyShowLinesFilter = ref(null);
+
   return {
     isFilterSidebarOpen: readonly(isFilterSidebarOpen),
+    onlyShowLinesFilter,
     openFilterSidebar() {
       isFilterSidebarOpen.value = true;
     },

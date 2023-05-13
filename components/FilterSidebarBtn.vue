@@ -1,9 +1,15 @@
 <template>
-  <VBtn class="filter-button" icon="mdi-filter" @click="$emit('click')" />
+  <VBtn
+    class="filter-button"
+    icon="mdi-filter"
+    @click="props.state.openFilterSidebar()"
+  />
 </template>
 
 <script setup lang="ts">
-defineEmits(["click"]);
+import { FilterSidebarState } from "~/composables/states";
+
+const props = defineProps<{ state: FilterSidebarState }>();
 </script>
 
 <style scoped>
