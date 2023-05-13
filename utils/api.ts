@@ -8,7 +8,9 @@ import type {
 const { apiHost } = useRuntimeConfig().public;
 
 function callApi<T>(endpoint: string, params?: { [param: string]: string[] }) {
-  return $fetch<T>(buildRequestUrl(endpoint, params));
+  return $fetch<T>(buildRequestUrl(endpoint, params), {
+    credentials: "include",
+  });
 }
 
 export const api = {
