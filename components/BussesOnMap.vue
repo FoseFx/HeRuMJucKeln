@@ -1,25 +1,11 @@
 <template>
   <MapboxSource :id="BUS_SOURCE_ID" :options="source"></MapboxSource>
   <MapboxLayer :id="BUS_LAYER_ID" :options="busLayer"></MapboxLayer>
-  <MapboxPopup
-    v-if="popupCoordinates && popupVehicleState"
-    :close-button="false"
-    :close-on-click="false"
-    :lng-lat="popupCoordinates"
-  >
-    <BusPopup :vehicle-state="popupVehicleState" />
-  </MapboxPopup>
 </template>
 
 <script setup lang="ts">
-import {
-  MapboxLayer,
-  MapboxPopup,
-  MapboxSource,
-} from "@studiometa/vue-mapbox-gl";
+import { MapboxLayer, MapboxSource } from "@studiometa/vue-mapbox-gl";
 import { GeoJSONSourceRaw, Layer, Map, MapLayerMouseEvent } from "mapbox-gl";
-import { Position } from "geojson";
-import { VehicleState } from "~/swagger/Api";
 import { FilterSidebarState } from "~/composables/states";
 
 const props = defineProps<{ filterSidebarState: FilterSidebarState }>();
@@ -28,17 +14,13 @@ const props = defineProps<{ filterSidebarState: FilterSidebarState }>();
 const BUS_LAYER_ID = "busses";
 const BUS_SOURCE_ID = "busses-source";
 
-const emit = defineEmits(["click"]);
+const emit = defineEmits(["click", "vehicle-hover", "vehicle-hover-end"]);
 
 // mapbox-map is provided by the MapboxMap component
 const map = inject<Ref<Map>>("mapbox-map");
 if (!map) {
   throw new Error("mapbox-map could not be injected into BussesOnMap");
 }
-
-// State
-const popupCoordinates = ref<null | Position>(null);
-const popupVehicleState = ref<null | VehicleState>(null);
 
 //
 // Mouse Enter
@@ -64,8 +46,10 @@ const onBusLayerMouseEnter = (e: MapLayerMouseEvent) => {
     return; // we are not on a bus, as busses are points and have custom properties
   }
 
-  popupCoordinates.value = geometry.coordinates.slice(); // copy coords
-  popupVehicleState.value = vehicleForMapboxEvent(e);
+  emit("vehicle-hover", {
+    coordinates: geometry.coordinates.slice(), // copy coords
+    vehicleState: vehicleForMapboxEvent(e),
+  });
 };
 map.value.on("mouseenter", "busses", onBusLayerMouseEnter);
 onUnmounted(() => map.value.off("mouseenter", "busses", onBusLayerMouseEnter));
@@ -76,8 +60,7 @@ onUnmounted(() => map.value.off("mouseenter", "busses", onBusLayerMouseEnter));
 
 const onBusLayerMouseLeave = () => {
   map.value.getCanvas().style.cursor = "";
-  popupCoordinates.value = null;
-  popupVehicleState.value = null;
+  emit("vehicle-hover-end");
 };
 map.value.on("mouseleave", "busses", onBusLayerMouseLeave);
 onUnmounted(() => map.value.off("mouseleave", "busses", onBusLayerMouseLeave));
@@ -164,7 +147,6 @@ function vehicleForMapboxEvent(e: MapLayerMouseEvent) {
   }
   const vehicle = filteredVehicles.value[vehicleIndex];
   if (!vehicle) {
-    // eslint-disable-next-line no-console
     console.warn("a feature has an invalid vehicle index", vehicleIndex, e);
     return null;
   }

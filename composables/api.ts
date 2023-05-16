@@ -29,3 +29,11 @@ export function useLines() {
 
   return { ...lines };
 }
+
+export function useItineraries(params?: {
+  vehicleUid?: string[];
+  tripUid?: string[];
+  blockUid?: string[];
+}) {
+  return { ...usePromise(ref(api.trips.retrieveTripItineraries(params))) };
+}

@@ -9,7 +9,11 @@
     <NuxtLink to="/log" title="Ereignistabelle anzeigen">
       <VIcon icon="mdi-format-list-bulleted" />
     </NuxtLink>
-    <NuxtLink v-if="config.isDev" to="/dev" title="Entwicklerseite anzeigen">
+    <NuxtLink
+      v-if="config.public.isDev"
+      to="/dev"
+      title="Entwicklerseite anzeigen"
+    >
       <VIcon icon="mdi-wrench" />
     </NuxtLink>
     <div style="flex: 1"></div>

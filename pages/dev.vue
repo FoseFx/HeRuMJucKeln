@@ -3,6 +3,18 @@
     <h1>Development Page</h1>
     <VBtn @click="addNotification">Add new notification</VBtn>
     <VBtn @click="fetchVehicles()">Get Vehicles (open console)</VBtn>
+    <br />
+    <br />
+    <section>
+      <h2>Map: Linie</h2>
+      <RawMap @map="onLineMapAvailable()">
+        <LineOnMap
+          v-if="vehicleIdForLine"
+          :vehicle-id="vehicleIdForLine"
+          @error="onLineError"
+        />
+      </RawMap>
+    </section>
   </div>
 </template>
 
@@ -10,7 +22,7 @@
 import { VehicleRegistrationState } from "~/swagger/Api";
 
 definePageMeta({
-  middleware: () => useRuntimeConfig().isDev || abortNavigation(),
+  middleware: () => useRuntimeConfig().public.isDev || abortNavigation(),
 });
 
 const notifications = useNotifications();
@@ -29,9 +41,31 @@ function fetchVehicles() {
       tenant: ["IVU", "STO"],
       registrationState: [VehicleRegistrationState.OPERATIONAL],
     })
-    // eslint-disable-next-line no-console
     .then((d) => console.log(d))
-    // eslint-disable-next-line no-console
     .catch((e) => console.error(e));
 }
+
+const vehicleIdForLine: Ref<string | undefined> = ref(undefined);
+
+async function onLineMapAvailable() {
+  const vehicles = await api.vehicles.retrieveSelectableVehicles({
+    tenant: ["IVU", "STO"],
+    registrationState: [VehicleRegistrationState.OPERATIONAL],
+  });
+  if (!vehicles || !vehicles[0]) {
+    throw new Error("no vehicle available");
+  }
+  vehicleIdForLine.value = vehicles[0].identification.uid;
+}
+
+function onLineError(e: Error) {
+  console.error(e);
+}
 </script>
+
+<style scoped>
+.map-container {
+  width: 500px;
+  height: 400px;
+}
+</style>

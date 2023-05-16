@@ -416,7 +416,10 @@ export type LinkLength = number;
 /** This is a node of the itinerary. It describes a net point of our net. This node does not have to be associated to a stop point. The type of the underlying net point can be found in the 'identification' property. */
 export interface TripItineraryNode {
   identification?: any;
-  gpsPosition?: any;
+  gpsPosition?: {
+    latitude?: number;
+    longitude?: number;
+  };
   /** The arrival and departure times of this itinerary's node. Only the pair of the planned times is always present. If the trip will begin soon, the actual time info will be present. The actual time info will start as a prediction of the times. After serving the node, it will switch to a logged timestamp. */
   timeInfo?: TimeInfo;
   cancelled?: boolean;
@@ -577,7 +580,10 @@ export interface SelectableVehiclesResponse {
  */
 export interface SelectableVehicle {
   tenant: string;
-  identification: any;
+  identification: {
+    uid?: string;
+    displayText?: string;
+  };
   voiceRadioId?: string;
   registrationState: VehicleRegistrationState;
   operational?: VehicleOperationalData;
@@ -591,7 +597,11 @@ export interface VehicleOperationalData {
     displayText?: string;
   };
   block?: any;
-  trip?: any;
+  trip?: {
+    displayText?: string;
+    numberInBlock?: number;
+    uid?: string;
+  };
   driver?: any;
   duty?: DutyIdentification;
   route?: any;

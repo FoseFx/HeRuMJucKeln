@@ -2,7 +2,7 @@
   <div class="map-container">
     <MapboxMap
       :key="mapStyle"
-      :access-token="config.mapbox.pk"
+      :access-token="mapboxConfig.pk"
       :map-style="mapStyle"
       :center="center"
       :zoom="zoom"
@@ -19,11 +19,14 @@ import { MapboxMap, MapboxNavigationControl } from "@studiometa/vue-mapbox-gl";
 import { Map, ScaleControl } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
+const emit = defineEmits(["map"]);
+
 const config = useRuntimeConfig();
+const mapboxConfig = config.public.mapbox;
 const dark = useDark();
 
 const mapStyle = computed(
-  () => config.mapbox.style[dark.value ? "dark" : "light"]
+  () => mapboxConfig.style[dark.value ? "dark" : "light"]
 );
 
 const center = [6.07998, 50.77791]; // TODO: calculate using data
@@ -40,6 +43,7 @@ function addScaleIndicator(map: Map) {
 
 function onMapCreated(map: Map) {
   addScaleIndicator(map);
+  emit("map", map);
 }
 </script>
 

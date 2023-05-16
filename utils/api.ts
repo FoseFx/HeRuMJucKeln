@@ -2,6 +2,7 @@ import type {
   VehicleRegistrationState,
   SelectableVehiclesResponse,
   VehicleStatesResponse,
+  TripItinerariesResponse,
   Line,
 } from "~/swagger/Api";
 
@@ -20,6 +21,20 @@ export const api = {
       return Promise.resolve(["IVU", "STO"]);
     },
   },
+  trips: {
+    retrieveTripItineraries(
+      params: {
+        vehicleUid?: string[];
+        tripUid?: string[];
+        blockUid?: string[];
+      } = {}
+    ) {
+      return callApi<TripItinerariesResponse>(
+        "/gw/tripItineraries",
+        params
+      ).then((res) => res.data);
+    },
+  },
   vehicles: {
     async retrieveSelectableVehicles(
       params: {
@@ -28,14 +43,14 @@ export const api = {
       } = {}
     ) {
       const res = await callApi<SelectableVehiclesResponse>(
-        "gw/selectableVehicles",
+        "/gw/selectableVehicles",
         params
       );
       return res.data;
     },
     async retrieveVehicleStates(params: { tenant?: string[] }) {
       const res = await callApi<VehicleStatesResponse>(
-        "gw/vehicleStates",
+        "/gw/vehicleStates",
         params
       );
       return res.data;
@@ -62,7 +77,6 @@ export const api = {
         const id = vehicle.operational?.line?.uid;
         const text = vehicle.operational?.line?.displayText;
         if (!id || !text) {
-          // eslint-disable-next-line no-console
           console.debug("uid or displayText undefined", vehicle, vehicles);
           continue;
         }
@@ -78,18 +92,16 @@ export const api = {
 };
 
 function buildRequestUrl(
-  endpoint: string,
-  params?: { [param: string]: string[] }
+  path: string,
+  queryParams: { [param: string]: string[] } = {}
 ) {
-  let query = "";
-  if (params !== undefined) {
-    query =
-      "?" +
-      Object.keys(params)
-        .map((param) =>
-          params[param].map((value) => `${param}=${value}`).join("&")
-        )
-        .join("&");
+  const query = new URLSearchParams();
+  for (const [param, values] of Object.entries(queryParams)) {
+    for (const value of values) {
+      query.append(param, value);
+    }
   }
-  return `${apiHost}/${endpoint}${query}`;
+  const url = new URL(apiHost + path);
+  url.search = query.toString();
+  return url.toString();
 }
