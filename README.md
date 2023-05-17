@@ -54,4 +54,17 @@ Locally preview production build:
 npm run preview
 ```
 
+### Configuration
+
+This list of environment variables is best-effort, most configuration is done in `nuxt.config.ts`.
+
+- **Production Mode:**
+  as customary, `NODE_ENV` can be set to `development` and `production`
+- **Router Base Path:**
+  use `NUXT_BASE_URL` to set the router base, default (prod): `/teaching/summer-term-2023/daten-die-uns-bewegen/herumjuckeln/herumjuckeln/`, default (dev): `/`
+- **Mapbox API Key:**
+  `MAPBOX_PK` defaults to Max' PK. There is no guarantee it will remain valid in the future.
+- **IVU API Host:**
+  `IVU_API_HOST` defaults to `https://rwth.ivu.de/fl`. No trailing slash!
+
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.

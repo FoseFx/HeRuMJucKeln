@@ -27,13 +27,15 @@ export default defineNuxtConfig({
       isProd,
       isDev,
       mapbox: {
-        pk: "pk.eyJ1IjoiZm9zZWZ4IiwiYSI6ImNrOGFkOW56ZjAxNjgzZW0za3dxdHFic3UifQ.85f3mrJqSnISFg20Bz0xng", // PK for Max' mapbox account
+        pk:
+          process.env.MAPBOX_PK ||
+          "pk.eyJ1IjoiZm9zZWZ4IiwiYSI6ImNrOGFkOW56ZjAxNjgzZW0za3dxdHFic3UifQ.85f3mrJqSnISFg20Bz0xng", // PK for Max' mapbox account
         style: {
           light: "mapbox://styles/fosefx/clgoas59s00f701pcg6qud1hh", // Decimal Light
           dark: "mapbox://styles/fosefx/clgobc19v00gn01qxgrex6vms", // Decimal Dark
         },
       },
-      apiHost: "https://rwth.ivu.de/fl",
+      apiHost: process.env.IVU_API_HOST || "https://rwth.ivu.de/fl",
     },
   },
   css: [
