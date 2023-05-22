@@ -1,44 +1,35 @@
 <template>
-  <VRow style="overflow: hidden">
-    <VCol :cols="open ? 8 : 12">
-      <slot name="content"></slot>
-    </VCol>
-    <VCol v-if="open" cols="4">
-      <VCard class="sidebar">
-        <template #prepend>
-          <VBtn icon @click="closeSidebar">
-            <VIcon icon="mdi-close" />
-          </VBtn>
-        </template>
-        <template #title>
-          <VCardTitle>{{ title }}</VCardTitle>
-        </template>
-        <slot name="sidebar"></slot>
-      </VCard>
-    </VCol>
-  </VRow>
+  <VCard v-if="vehicle" class="sidebar">
+    <template #prepend>
+      <VBtn icon @click="$emit('close')">
+        <VIcon icon="mdi-close" />
+      </VBtn>
+    </template>
+    <template #title>
+      <VCardTitle>{{ vehicle.identification.displayText }}</VCardTitle>
+    </template>
+    <slot />
+  </VCard>
+  <VCard v-else> Loading... </VCard>
 </template>
 
 <script lang="ts" setup>
-const open = ref(true);
+import { VehicleState } from "~/swagger/Api";
 
-const emit = defineEmits(["close"]);
+defineEmits(["close"]);
+const props = defineProps<{ id: string; vehicleState?: VehicleState }>();
 
-function closeSidebar() {
-  open.value = false;
-  emit("close");
-}
+const vehicles = computed(() =>
+  props.vehicleState
+    ? ref([props.vehicleState])
+    : useVehicleStates(undefined, [props.id])
+);
 
-defineProps<{ title: string }>();
+const vehicle = computed(() => vehicles.value.value[0]);
 </script>
 
 <style scoped>
-.v-col {
-  padding-left: 0px;
-  padding-right: 0px;
-}
-
-.v-col > .v-card {
+.v-card {
   padding: 1em;
   height: 100%;
 }

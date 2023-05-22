@@ -48,7 +48,10 @@ export const api = {
       );
       return res.data;
     },
-    async retrieveVehicleStates(params: { tenant?: string[] }) {
+    async retrieveVehicleStates(params: {
+      tenant?: string[];
+      vehicleUid?: string[];
+    }) {
       const res = await callApi<VehicleStatesResponse>(
         "/gw/vehicleStates",
         params
@@ -97,6 +100,7 @@ function buildRequestUrl(
 ) {
   const query = new URLSearchParams();
   for (const [param, values] of Object.entries(queryParams)) {
+    if (!values) continue;
     for (const value of values) {
       query.append(param, value);
     }

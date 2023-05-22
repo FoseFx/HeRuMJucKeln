@@ -74,8 +74,7 @@ const onBusLayerMouseClick = (e: MapLayerMouseEvent) => {
   if (!vehicle) {
     return;
   }
-  const id = vehicle.identification.uid;
-  emit("click", id);
+  emit("click", vehicle);
 };
 map.value.on("click", "busses", onBusLayerMouseClick);
 onUnmounted(() => map.value.off("click", "busses", onBusLayerMouseClick));

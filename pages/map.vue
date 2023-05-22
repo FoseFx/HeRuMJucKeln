@@ -9,8 +9,8 @@
           @vehicle-hover-end="onVehicleHoverEnd"
         />
         <LineOnMap
-          v-if="popupInformation?.vehicleState.identification.uid"
-          :vehicle-id="popupInformation?.vehicleState.identification.uid"
+          v-if="lineVehicleId"
+          :vehicle-id="lineVehicleId"
           @error="onLineError"
         />
         <BusPopup v-if="popupInformation" :info="popupInformation" />
@@ -23,6 +23,14 @@
     <VCol v-if="isFilterSidebarOpen" :cols="3" style="height: 100%">
       <FilterSidebar :state="filterSidebarState" />
     </VCol>
+    <VCol v-if="sidebarOpen" :cols="5" style="height: 100%">
+      <NuxtPage :page-key="busId" />
+      <SideBarComponent
+        :id="busId"
+        :vehicle-state="clickedVehicle"
+        @close="onSidebarClose"
+      />
+    </VCol>
   </VRow>
 </template>
 
@@ -32,9 +40,12 @@ import { PopupInformation } from "~/components/BusPopup.vue";
 import { VehicleState } from "~/swagger/Api";
 
 const filterSidebarState = useFilterSidebar("map");
-const { isFilterSidebarOpen } = filterSidebarState;
+const { isFilterSidebarOpen, closeFilterSidebar } = filterSidebarState;
 
-// State
+//
+// Hover
+//
+
 const popupInformation = ref<PopupInformation | null>(null);
 
 const onVehicleHover = (e: {
@@ -51,10 +62,47 @@ const onVehicleHoverEnd = () => {
   popupInformation.value = null;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function onBusClick(id: string) {
-  // Open sidebar
+//
+// Click
+//
+
+const route = useRoute();
+const router = useRouter();
+
+const mapRoutePath = route.matched[0].path;
+
+const busId = computed(() => route.params.busId as string);
+
+const sidebarOpen = computed(() => !!busId.value);
+
+watch(
+  sidebarOpen,
+  (v) => {
+    v && closeFilterSidebar();
+  },
+  {
+    immediate: true,
+  }
+);
+
+const clickedVehicle = ref<VehicleState | undefined>(undefined);
+
+function onBusClick(vehicle: VehicleState) {
+  clickedVehicle.value = vehicle;
+  const path = mapRoutePath + `/${vehicle.identification.uid}`;
+  router.push(path);
 }
+
+function onSidebarClose() {
+  clickedVehicle.value = undefined;
+  router.push(mapRoutePath);
+}
+
+const lineVehicleId = computed(() =>
+  popupInformation.value
+    ? popupInformation.value.vehicleState.identification.uid
+    : clickedVehicle.value?.identification?.uid
+);
 
 // TODO: aggregate and show errors
 function onLineError(e: Error) {

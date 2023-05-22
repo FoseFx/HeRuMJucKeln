@@ -1,7 +1,7 @@
 import { UsePromiseResult, usePromise } from "vue-promised";
 import { VehicleState, Line } from "~/swagger/Api";
 
-export function useVehicleStates(tenants?: string[]) {
+export function useVehicleStates(tenants?: string[], vehicleIds?: string[]) {
   const vehicleStates = ref<VehicleState[]>([]);
   const request = async () => {
     if (!tenants) {
@@ -9,6 +9,7 @@ export function useVehicleStates(tenants?: string[]) {
     }
     const states = await api.vehicles.retrieveVehicleStates({
       tenant: tenants,
+      vehicleUid: vehicleIds,
     });
     if (states !== undefined) {
       vehicleStates.value = states;
