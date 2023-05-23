@@ -21,6 +21,29 @@ export function useVehicleStates(tenants?: string[], vehicleIds?: string[]) {
   return vehicleStates;
 }
 
+export function useFilteredVehicleState(tenants?: string[]) {
+  const allVehicles = useVehicleStates(tenants);
+  const filterSidebar = useFilterSidebar();
+
+  const filteredVehicles = computed(() => {
+    if (!allVehicles.value) {
+      return [];
+    } else if (filterSidebar.onlyShowLinesFilter.value.length === 0) {
+      return allVehicles.value.filter((vehicle) => vehicle.gpsPosition);
+    } else {
+      return allVehicles.value
+        .filter((vehicle) => vehicle.gpsPosition)
+        .filter((v) =>
+          filterSidebar.onlyShowLinesFilter.value.find(
+            (l) => v.operational?.line?.uid === l
+          )
+        );
+    }
+  });
+
+  return filteredVehicles;
+}
+
 let lines: UsePromiseResult<Line[]> | null = null; // global state, don't re-fetch lines every time
 export function useLines() {
   if (lines === null || !lines.isRejected) {

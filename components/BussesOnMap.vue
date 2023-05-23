@@ -6,9 +6,6 @@
 <script setup lang="ts">
 import { MapboxLayer, MapboxSource } from "@studiometa/vue-mapbox-gl";
 import { GeoJSONSourceRaw, Layer, Map, MapLayerMouseEvent } from "mapbox-gl";
-import { FilterSidebarState } from "~/composables/states";
-
-const props = defineProps<{ filterSidebarState: FilterSidebarState }>();
 
 // Constants
 const BUS_LAYER_ID = "busses";
@@ -95,25 +92,7 @@ const busLayer: Layer = {
   },
 };
 
-const allVehicles = useVehicleStates();
-
-const filteredVehicles = computed(() => {
-  if (!allVehicles.value) {
-    return [];
-  }
-  let filtered = allVehicles.value.filter((vehicle) => vehicle.gpsPosition);
-
-  const onlyShowLinesFilter =
-    props.filterSidebarState.onlyShowLinesFilter.value;
-
-  if (onlyShowLinesFilter !== null) {
-    filtered = filtered.filter((v) =>
-      onlyShowLinesFilter.find((l) => v.operational?.line?.uid === l)
-    );
-  }
-
-  return filtered;
-});
+const filteredVehicles = useFilteredVehicleState();
 
 // Transform API-Data to source for map
 const source: Ref<GeoJSONSourceRaw> = computed(

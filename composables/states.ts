@@ -8,27 +8,12 @@ export type InternalNotification = {
 export const useNotifications = () =>
   useState<InternalNotification[]>("notifications", () => []);
 
-export type FilterSidebarState = {
-  isFilterSidebarOpen: Ref<boolean>;
-  onlyShowLinesFilter: Ref<string[] | null>;
-  openFilterSidebar: () => void;
-  closeFilterSidebar: () => void;
-};
-
-export function useFilterSidebar(
-  storageKey?: string,
-  initialState = true
-): FilterSidebarState {
+export function useFilterSidebar(initialState = true) {
   let isFilterSidebarOpen = ref(initialState);
 
-  if (storageKey) {
-    isFilterSidebarOpen = useLocalStorage(
-      "filter-sidebar-open-" + storageKey,
-      initialState
-    );
-  }
+  const onlyShowLinesFilter = useState<string[]>("show-lines-filter", () => []);
 
-  const onlyShowLinesFilter = ref(null);
+  isFilterSidebarOpen = useLocalStorage("filter-sidebar-open", initialState);
 
   return {
     isFilterSidebarOpen: readonly(isFilterSidebarOpen),
@@ -38,6 +23,11 @@ export function useFilterSidebar(
     },
     closeFilterSidebar() {
       isFilterSidebarOpen.value = false;
+    },
+    openIfFiltered() {
+      if (onlyShowLinesFilter.value.length > 0) {
+        this.openFilterSidebar();
+      }
     },
   };
 }

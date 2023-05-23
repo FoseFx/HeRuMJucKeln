@@ -1,97 +1,116 @@
 <template>
-  <v-text-field
+  <VTextField
     v-model="search"
     append-icon="mdi-magnify"
     label="Search"
     single-line
     hide-details
     class="searchbar"
-  ></v-text-field>
-  <VDataTable :headers="headers" :items="items" must-sort sort-desc />
+  >
+  </VTextField>
+  <VDataTable
+    height="80vh"
+    :headers="headers"
+    fixed-header
+    :items="items"
+    must-sort
+    sort-desc
+    :items-per-page="40"
+  >
+    <template
+      #[`item.deviation`]="{ item: { value } }: { item: { value: TableEntry } }"
+    >
+      <div
+        v-if="value.deviation"
+        :title="getDeviationSemanticsText(value.deviation.semantics)"
+        :style="{
+          color: getDeviationSemanticsColor(value.deviation.semantics),
+        }"
+      >
+        {{ value.deviation.value }} min
+      </div>
+    </template>
+  </VDataTable>
 </template>
 <script setup lang="ts">
-// TODO: fix prefix sorting
 import { VDataTable } from "vuetify/labs/VDataTable";
+import { VehicleState } from "~/swagger/Api";
+import { DataTableHeader } from "~/types/vuetify";
+
 const search = ref("");
-type DataTableHeader = {
-  key: string;
-  title: string;
-  colspan?: number;
-  rowspan?: number;
-  fixed?: boolean;
-  align?: "start" | "end";
-  width?: number;
-  minWidth?: string;
-  maxWidth?: string;
-  sortable?: boolean;
-};
+
+interface TableEntry {
+  vehicleId?: string;
+  driverName?: string;
+  tenant?: string;
+  line?: string;
+  destination?: string;
+  deviation?: VehicleState["deviation"];
+  predecessor?: string;
+  successor?: string;
+}
 const headers: DataTableHeader[] = [
-  { title: "FahrzeugID", align: "start", sortable: true, key: "fahrzeugId" },
-  { title: "Fahrer", align: "start", sortable: true, key: "fahrerName" },
+  {
+    title: "FahrzeugID",
+    align: "start",
+    sortable: true,
+    key: "vehicleId",
+    width: "10%" as unknown as number,
+  },
+  {
+    title: "Fahrer",
+    align: "start",
+    sortable: true,
+    key: "driverName",
+    // VDataTable seems to only accept numbers as width but also works with percentage-strings
+    width: "20%" as unknown as number,
+  },
   {
     title: "Dienstleister",
     align: "start",
     sortable: true,
-    key: "dienstleister",
+    key: "tenant",
   },
-  { title: "Linie", align: "start", sortable: true, key: "linie" },
-  { title: "Ziel", align: "start", sortable: true, key: "ziel" },
-  { title: "Abweichung", align: "start", sortable: true, key: "abweichung" },
-  { title: "Vorgänger", align: "start", sortable: true, key: "vorgaenger" },
-  { title: "Nachfolger", align: "start", sortable: true, key: "nachfolger" },
+  {
+    title: "Linie",
+    align: "start",
+    sortable: true,
+    key: "line",
+    width: "10%" as unknown as number,
+  },
+  {
+    title: "Ziel",
+    align: "start",
+    sortable: true,
+    key: "destination",
+    width: "10%" as unknown as number,
+  },
+  {
+    title: "Abweichung",
+    align: "start",
+    sortable: true,
+    key: "deviation",
+    sort: (a: TableEntry["deviation"], b: TableEntry["deviation"]) =>
+      (a?.value ?? 0) - (b?.value ?? 0),
+  },
+  { title: "Vorgänger", align: "start", sortable: true, key: "predecessor" },
+  { title: "Nachfolger", align: "start", sortable: true, key: "successor" },
 ];
-const items = [
-  {
-    fahrzeugId: "AVV/123",
-    fahrerName: "Rossmanith",
-    dienstleister: "ASEAG",
-    linie: 24,
-    ziel: "Uniklinik",
-    abweichung: +10,
-    vorgaenger: "6 min",
-    nachfolger: "7 min",
-  },
-  {
-    fahrzeugId: "DB/12",
-    fahrerName: "Giesl",
-    dienstleister: "Arriva",
-    linie: 73,
-    ziel: "Uniklinik",
-    abweichung: -5,
-    vorgaenger: "2 min",
-    nachfolger: "10 min",
-  },
-  {
-    fahrzeugId: "DB/36",
-    fahrerName: "Rumpe",
-    dienstleister: "Arriva",
-    linie: 33,
-    ziel: "Fuchserde",
-    abweichung: +2,
-    vorgaenger: "3 min",
-    nachfolger: "4 min",
-  },
-  {
-    fahrzeugId: "AVV/123",
-    fahrerName: "Mustermann",
-    dienstleister: "ASEAG",
-    linie: 34,
-    ziel: "Uniklinik",
-    abweichung: +5,
-    vorgaenger: "4 min",
-    nachfolger: "8 min",
-  },
-  {
-    fahrzeugId: "AVV/123",
-    fahrerName: "Kowalewski",
-    dienstleister: "Taeter3000",
-    linie: 12,
-    ziel: "Elisenbrunnen",
-    abweichung: 0,
-    vorgaenger: "1 min",
-    nachfolger: "11 min",
-  },
-];
+
+const filteredVehicles = useFilteredVehicleState();
+
+const items = computed<TableEntry[]>(() =>
+  filteredVehicles.value.map((vehicle) => ({
+    vehicleId: vehicle.identification.displayText,
+    driverName: vehicle.operational?.driver?.displayText,
+    tenant: vehicle.tenant,
+    line: vehicle.operational?.line?.displayText as string,
+    deviation: vehicle.deviation,
+    destination: vehicle.destination?.lastStopName,
+    predecessor: "TODO",
+    successor: "TODO",
+  }))
+);
 </script>
 <style scoped>
 .searchbar {

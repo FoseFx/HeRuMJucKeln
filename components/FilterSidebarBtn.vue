@@ -2,14 +2,12 @@
   <VBtn
     class="filter-button"
     icon="mdi-filter"
-    @click="props.state.openFilterSidebar()"
+    @click="filterSidebar.openFilterSidebar()"
   />
 </template>
 
 <script setup lang="ts">
-import { FilterSidebarState } from "~/composables/states";
-
-const props = defineProps<{ state: FilterSidebarState }>();
+const filterSidebar = useFilterSidebar();
 </script>
 
 <style scoped>

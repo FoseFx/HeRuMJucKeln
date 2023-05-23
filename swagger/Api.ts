@@ -29,6 +29,13 @@ export interface DisruptionReportsResponse {
   data?: DisruptionReport[];
 }
 
+export interface Deviation {
+  value?: number;
+  semantics?: "ON_TIME" | "PROBLEMATIC" | "SUBOPTIMAL" | "WAITING";
+  prefix?: string;
+  obsolescenceStage?: string;
+}
+
 export interface DisruptionReport {
   uid?: string;
   tenant?: string;
@@ -48,7 +55,7 @@ export interface DisruptionReport {
   vehicle?: any;
   /** voice radio ID of the vehicle */
   voiceRadioId?: string;
-  deviation?: any;
+  deviation?: Deviation;
   driver?: any;
   occupancy?: any;
   trailers?: any;
@@ -202,7 +209,7 @@ export interface OperationsLogEntry {
   vehicle?: any;
   /** voice radio ID of the vehicle */
   voiceRadioId?: string;
-  deviation?: any;
+  deviation?: Deviation;
   driver?: any;
   occupancy?: any;
   trailers?: any;
@@ -258,7 +265,7 @@ export interface RadioMessage {
   vehicle?: any;
   /** voice radio ID of the vehicle */
   voiceRadioId?: string;
-  deviation?: any;
+  deviation?: Deviation;
   driver?: any;
   occupancy?: any;
   trailers?: any;
@@ -602,7 +609,10 @@ export interface VehicleOperationalData {
     numberInBlock?: number;
     uid?: string;
   };
-  driver?: any;
+  driver?: {
+    uid?: string;
+    displayText?: string;
+  };
   duty?: DutyIdentification;
   route?: any;
 }
@@ -626,12 +636,12 @@ export interface VehicleState {
   workingSet?: WorkingSetIdentification;
   type?: VehicleTypeIdentification;
   lastUpdate: any;
-  deviation?: any;
+  deviation?: Deviation;
   gpsPosition?: GpsPosition;
   geoDirection?: GeoDirection;
   positionState?: PositionState;
   position?: any;
-  destination?: any;
+  destination?: { lastStopName?: string };
   occupancy?: any;
   trailers?: any;
   remainingRange?: any;

@@ -3,7 +3,6 @@
     <VCol style="position: relative">
       <RawMap>
         <BussesOnMap
-          :filter-sidebar-state="filterSidebarState"
           @click="onBusClick"
           @vehicle-hover="onVehicleHover"
           @vehicle-hover-end="onVehicleHoverEnd"
@@ -15,13 +14,10 @@
         />
         <BusPopup v-if="popupInformation" :info="popupInformation" />
       </RawMap>
-      <FilterSidebarBtn
-        v-if="!isFilterSidebarOpen"
-        :state="filterSidebarState"
-      />
+      <FilterSidebarBtn v-if="!isFilterSidebarOpen" :state="filterSidebar" />
     </VCol>
     <VCol v-if="isFilterSidebarOpen" :cols="3" style="height: 100%">
-      <FilterSidebar :state="filterSidebarState" />
+      <FilterSidebar />
     </VCol>
     <VCol v-if="sidebarOpen" :cols="5" style="height: 100%">
       <NuxtPage :page-key="busId" />
@@ -39,13 +35,14 @@ import { Position } from "geojson";
 import { PopupInformation } from "~/components/BusPopup.vue";
 import { VehicleState } from "~/swagger/Api";
 
-const filterSidebarState = useFilterSidebar("map");
-const { isFilterSidebarOpen, closeFilterSidebar } = filterSidebarState;
+const filterSidebar = useFilterSidebar();
+const { isFilterSidebarOpen, closeFilterSidebar } = filterSidebar;
 
-//
-// Hover
-//
+onMounted(() => {
+  filterSidebar.openIfFiltered();
+});
 
+// State
 const popupInformation = ref<PopupInformation | null>(null);
 
 const onVehicleHover = (e: {

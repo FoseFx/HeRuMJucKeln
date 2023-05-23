@@ -9,7 +9,7 @@
             color="transparent"
             :elevation="0"
             prepend-icon="mdi-chevron-right"
-            @click="props.state.closeFilterSidebar()"
+            @click="filterSidebar.closeFilterSidebar()"
           />
         </VSheet>
       </VCol>
@@ -31,8 +31,8 @@
     <VRow>
       <VCol>
         <VContainer>
-          <VExpansionPanels multiple>
-            <VExpansionPanel eager>
+          <VExpansionPanels v-model="panel" multiple>
+            <VExpansionPanel value="line" eager>
               <VExpansionPanelTitle style="justify-content: space-between">
                 <div>Linien</div>
                 <div style="flex: 1"></div>
@@ -57,7 +57,7 @@
                   <VCheckbox
                     v-for="line of lines"
                     :key="line.id"
-                    v-model="linesSelected"
+                    v-model="filterSidebar.onlyShowLinesFilter.value"
                     :label="line.name"
                     :value="line.id"
                     class="half-cb"
@@ -87,25 +87,22 @@
 </template>
 
 <script setup lang="ts">
-import { FilterSidebarState } from "~/composables/states";
-
-const props = defineProps<{ state: FilterSidebarState }>();
 const dark = useDark();
 const { data: lines, isResolved: linesFetched } = useLines();
 
-const linesSelected: Ref<string[]> = ref([]);
+const filterSidebar = useFilterSidebar();
 
-const isLinesFiltered = computed(
-  () => linesFetched && linesSelected.value.length > 0
+const panel = ref(
+  filterSidebar.onlyShowLinesFilter.value.length > 0 ? ["line"] : []
 );
 
-watch(linesSelected, (v) => {
-  // eslint-disable-next-line vue/no-mutating-props
-  props.state.onlyShowLinesFilter.value = v.length === 0 ? null : v;
-});
+const isLinesFiltered = computed(
+  () =>
+    linesFetched && (filterSidebar.onlyShowLinesFilter.value?.length ?? 0) > 0
+);
 
 function resetLinesFilter() {
-  linesSelected.value = [];
+  filterSidebar.onlyShowLinesFilter.value = [];
 }
 
 function resetAll() {
