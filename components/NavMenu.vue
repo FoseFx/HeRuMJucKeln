@@ -16,6 +16,9 @@
     >
       <VIcon icon="mdi-wrench" />
     </NuxtLink>
+    <NuxtLink to="/dashboard" title="Dashboard anzeigen">
+      <VIcon icon="mdi-chart-pie" />
+    </NuxtLink>
     <div style="flex: 1"></div>
     <ThemeSwitch />
   </nav>
