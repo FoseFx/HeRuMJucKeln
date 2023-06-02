@@ -4,13 +4,32 @@ import type {
   VehicleStatesResponse,
   TripItinerariesResponse,
   Line,
+  VehicleStateChange,
 } from "~/swagger/Api";
 
 const { apiHost } = useRuntimeConfig().public;
 
-function callApi<T>(endpoint: string, params?: { [param: string]: string[] }) {
-  return $fetch<T>(buildRequestUrl(endpoint, params), {
+type HTTPMethod =
+  | "GET"
+  | "HEAD"
+  | "PATCH"
+  | "POST"
+  | "PUT"
+  | "DELETE"
+  | "CONNECT"
+  | "OPTIONS"
+  | "TRACE";
+
+function callApi<T>(
+  endpoint: string,
+  queryParams?: { [param: string]: string[] },
+  method?: HTTPMethod,
+  body?: Object
+) {
+  return $fetch<T>(buildRequestUrl(endpoint, queryParams), {
     credentials: "include",
+    body: body ? JSON.stringify(body) : undefined,
+    method,
   });
 }
 
@@ -57,6 +76,55 @@ export const api = {
         params
       );
       return res.data;
+    },
+    // registers a new subscription on vehicle state changes
+    // resolves subscription id, please use it to unsubscribe again
+    async addVehicleStateChangeListener(
+      params: {
+        tenant?: string[];
+        vehicleUid?: string[];
+      },
+      updateListener: (change: VehicleStateChange) => any
+    ): Promise<string> {
+      // register new subscription
+      let { subscriptionId } = await fetch(
+        apiHost + "/vehicleStates/updates/subscriptions",
+        {
+          headers: { "Content-Type": "application/json" },
+          // because ofetch is extra and requires this header to be lower-cased,
+          // and the browsers consider Content-Type and content-type different we will get CORS error if we use ofetch here
+          method: "POST",
+          body: JSON.stringify({ filterKeys: [params] }),
+        }
+      ).then((res) => res.json());
+      if (!subscriptionId) {
+        throw new Error("no subscriptionId was returned");
+      }
+
+      // FIXME: For now we have to use this sub id, becuase of API issues
+      subscriptionId = "c93f2c7d-ce66-4935-9330-2a8c92ff134a";
+
+      // add update listener
+      const source = new EventSource(
+        `${apiHost}/vehicleStates/updates?subscriptionId=${subscriptionId}`,
+        {
+          withCredentials: true,
+        }
+      );
+      source.onmessage = function ({ data }: MessageEvent<string>) {
+        updateListener(JSON.parse(data) as VehicleStateChange);
+      };
+      source.onerror = function (e: Event) {
+        console.error("error in source for ", subscriptionId, e);
+      };
+      return subscriptionId;
+    },
+    removeVehicleStateChangeListener(subscriptionId: string) {
+      return callApi(
+        `/vehicleStates/updates/subscriptions/${subscriptionId}`,
+        undefined,
+        "DELETE"
+      ).then((_) => {});
     },
   },
   custom: {

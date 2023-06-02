@@ -92,7 +92,7 @@ const busLayer: Layer = {
   },
 };
 
-const filteredVehicles = useFilteredVehicleState();
+const filteredVehicles = useFilteredVehicleState$();
 
 // Transform API-Data to source for map
 const source: Ref<GeoJSONSourceRaw> = computed(

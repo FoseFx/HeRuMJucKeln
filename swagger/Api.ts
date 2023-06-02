@@ -15,6 +15,10 @@ export type Line = {
   name: string;
 };
 
+export interface SubscriptionResponse {
+  subscriptionId?: string;
+}
+
 export interface GpsPosition {
   latitude: number;
   longitude: number;
@@ -523,6 +527,7 @@ export interface VehicleStatesFilterSpec {
 export type VehicleStateChange = {
   /** The operational data is present iff the registration state is OPERATIONAL or EXTERNAL. This does not necessarily hold for the sub values. They could be non-existing even if the operational data itself is present. For example, the driver data might not be present though the vehicle is operationally registered. Note that the value of the property registrationState of items in the response will never be UNREGISTERED as unregistered vehicles simply do not have a vehicle state. */
   value: VehicleState;
+  modifier: "CREATE" | "UPDATE" | "DELETE";
 };
 
 export interface DutyIdentification {

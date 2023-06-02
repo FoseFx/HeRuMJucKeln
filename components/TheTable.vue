@@ -97,7 +97,7 @@ const headers: DataTableHeader[] = [
   { title: "Nachfolger", align: "start", sortable: true, key: "successor" },
 ];
 
-const filteredVehicles = useFilteredVehicleState();
+const filteredVehicles = refThrottled(useFilteredVehicleState$(), 2000);
 
 const items = computed<TableEntry[]>(() =>
   filteredVehicles.value.map((vehicle) => ({
