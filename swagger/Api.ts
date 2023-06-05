@@ -348,7 +348,11 @@ export type Trip = BasicTrip & {
 
 /** Common properties for every representation of a trip. Of the two fields plannedTimes and actualTimes only the planned times are always present. If the trip will begin soon, the actual trip times will be present. The actual trip times will start as a prediction of the times. After the trip was started, the start timestamp will switch to a logged one. After the trip was finished, the end timestamp will switch to a logged one. */
 export interface BasicTrip {
-  identification: any;
+  identification: {
+    uid?: string;
+    displayText?: string;
+    numberInBlock?: number;
+  };
   /** @format date */
   operatingDay?: string;
   destination?: string;
@@ -362,8 +366,8 @@ export interface BasicTrip {
 
 /** A condensed view of a trip. */
 export type CondensedTrip = BasicTrip & {
-  firstTripItineraryNode: any;
-  lastTripItineraryNode: any;
+  firstTripItineraryNode?: NetPoint;
+  lastTripItineraryNode?: NetPoint;
 };
 
 export interface BlockSubscriptionRequestBody {
@@ -426,7 +430,7 @@ export type LinkLength = number;
 
 /** This is a node of the itinerary. It describes a net point of our net. This node does not have to be associated to a stop point. The type of the underlying net point can be found in the 'identification' property. */
 export interface TripItineraryNode {
-  identification?: any;
+  identification?: NetPoint;
   gpsPosition?: {
     latitude?: number;
     longitude?: number;
@@ -479,8 +483,8 @@ export interface ActualArrivalDepartureTimes {
 }
 
 export interface ArrivalDepartureTime {
-  arrival?: any;
-  departure?: any;
+  arrival?: number;
+  departure?: number;
 }
 
 export enum DemandType {
@@ -566,8 +570,8 @@ export interface PositionState {
    * @format float
    */
   distance?: number;
-  fromNetPoint?: any;
-  toNetPoint?: any;
+  fromNetPoint?: NetPoint;
+  toNetPoint?: NetPoint;
 }
 
 export interface VehicleTypeIdentification {
@@ -631,6 +635,20 @@ export interface VehicleStatesResponse {
   data?: VehicleState[];
 }
 
+export interface NetPoint {
+  posInRoute?: number;
+  netPoint?: {
+    displayText?: string;
+    uid?: string;
+    type?: "STOP_POINT";
+  };
+}
+
+export interface Occupancy {
+  passengerCount?: number;
+  range?: [number, number];
+}
+
 /** The operational data is present iff the registration state is OPERATIONAL or EXTERNAL. This does not necessarily hold for the sub values. They could be non-existing even if the operational data itself is present. For example, the driver data might not be present though the vehicle is operationally registered. Note that the value of the property registrationState of items in the response will never be UNREGISTERED as unregistered vehicles simply do not have a vehicle state. */
 export interface VehicleState {
   tenant: string;
@@ -647,7 +665,7 @@ export interface VehicleState {
   positionState?: PositionState;
   position?: any;
   destination?: { lastStopName?: string };
-  occupancy?: any;
+  occupancy?: Occupancy;
   trailers?: any;
   remainingRange?: any;
   stateOfCharge?: any;

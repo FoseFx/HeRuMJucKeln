@@ -134,3 +134,11 @@ export function useItineraries(params?: {
 }) {
   return { ...usePromise(ref(api.trips.retrieveTripItineraries(params))) };
 }
+
+export function useBlocks(params?: {
+  vehicleUid?: string[];
+  blockUid?: string[];
+}) {
+  console.log("Use block");
+  return { ...usePromise(ref(api.blocks.retrieveCondensedBlocks(params))) };
+}

@@ -1,4 +1,4 @@
-import { Deviation } from "~/swagger/Api";
+import { Deviation, Occupancy } from "~/swagger/Api";
 
 export const getDeviationSemanticsColor = (
   semantics: Deviation["semantics"]
@@ -31,5 +31,43 @@ export const getDeviationSemanticsText = (
       return "Wartet";
     default:
       return undefined;
+  }
+};
+
+/**
+ * Color gradually goes to red when approaching 5 Minutes for late arrivals or
+ * 3.5 minutes for early arrivals, as early arrivals are more critical
+ */
+export const getDeviationColor = (deviationInSeconds?: number) => {
+  const MINUTE = 60;
+
+  if (deviationInSeconds === undefined) {
+    return "grey";
+  } else if (
+    deviationInSeconds > 5 * MINUTE ||
+    deviationInSeconds < -3.5 * MINUTE
+  ) {
+    return "red";
+  } else if (deviationInSeconds <= 0) {
+    return getColorFromRedGreenRange(
+      Math.abs(deviationInSeconds) / (3.5 * MINUTE)
+    );
+  } else {
+    return getColorFromRedGreenRange(deviationInSeconds / (5 * MINUTE));
+  }
+};
+
+export const getOccupancyColor = (occupancy?: Occupancy) => {
+  const lowerPercentage = occupancy?.range?.[0] ?? -1;
+  if (lowerPercentage < 0) {
+    return "grey";
+  } else if (lowerPercentage < 25) {
+    return "green";
+  } else if (lowerPercentage < 50) {
+    return "yellow";
+  } else if (lowerPercentage < 75) {
+    return "orange";
+  } else {
+    return "red";
   }
 };

@@ -5,12 +5,17 @@
         <VIcon icon="mdi-close" />
       </VBtn>
     </template>
-    <template #title>
-      <VCardTitle>{{ vehicle.identification.displayText }}</VCardTitle>
+    <template #append>
+      <VBtn><VIcon icon="mdi-phone" color="green" />Anrufen</VBtn>
+      <VBtn><VIcon icon="mdi-cancel" color="red" />Fahrt abbrechen</VBtn>
     </template>
-    <slot />
+    <BusSidebar :vehicle-state="vehicle" />
   </VCard>
-  <VCard v-else> Loading... </VCard>
+  <VCard v-else>
+    <div class="text-center">
+      <VProgressCircular :size="100" indeterminate />
+    </div>
+  </VCard>
 </template>
 
 <script lang="ts" setup>

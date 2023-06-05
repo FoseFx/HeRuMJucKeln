@@ -5,6 +5,7 @@ import type {
   TripItinerariesResponse,
   Line,
   VehicleStateChange,
+  CondensedBlocksResponse,
 } from "~/swagger/Api";
 
 const { apiHost } = useRuntimeConfig().public;
@@ -50,6 +51,16 @@ export const api = {
     ) {
       return callApi<TripItinerariesResponse>(
         "/gw/tripItineraries",
+        params
+      ).then((res) => res.data);
+    },
+  },
+  blocks: {
+    retrieveCondensedBlocks(
+      params: { vehicleUid?: string[]; blockUid?: string[] } = {}
+    ) {
+      return callApi<CondensedBlocksResponse>(
+        "/gw/blocks/condensed",
         params
       ).then((res) => res.data);
     },
