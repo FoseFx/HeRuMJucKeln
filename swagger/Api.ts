@@ -29,6 +29,16 @@ export interface BusIdentification {
   displayText: string;
 }
 
+export interface BusDestination {
+  lastStopName: string;
+}
+
+export interface VehicleDeviation {
+  value: number;
+  prefix: string;
+  semantics: string;
+  obsolescenceStage: string;
+}
 export interface DisruptionReportsResponse {
   data?: DisruptionReport[];
 }
@@ -664,7 +674,7 @@ export interface VehicleState {
   geoDirection?: GeoDirection;
   positionState?: PositionState;
   position?: any;
-  destination?: { lastStopName?: string };
+  destination?: BusDestination;
   occupancy?: Occupancy;
   trailers?: any;
   remainingRange?: any;
