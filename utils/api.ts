@@ -30,6 +30,9 @@ function callApi<T>(
   return $fetch<T>(buildRequestUrl(endpoint, queryParams), {
     credentials: "include",
     body: body ? JSON.stringify(body) : undefined,
+    headers: {
+      "Accept-Language": "en",
+    },
     method,
   });
 }
@@ -98,10 +101,13 @@ export const api = {
       updateListener: (change: VehicleStateChange) => any
     ): Promise<string> {
       // register new subscription
-      let { subscriptionId } = await fetch(
+      const { subscriptionId } = await fetch(
         apiHost + "/vehicleStates/updates/subscriptions",
         {
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Accept-Language": "en",
+          },
           // because ofetch is extra and requires this header to be lower-cased,
           // and the browsers consider Content-Type and content-type different we will get CORS error if we use ofetch here
           method: "POST",
@@ -111,9 +117,6 @@ export const api = {
       if (!subscriptionId) {
         throw new Error("no subscriptionId was returned");
       }
-
-      // FIXME: For now we have to use this sub id, becuase of API issues
-      subscriptionId = "c93f2c7d-ce66-4935-9330-2a8c92ff134a";
 
       // add update listener
       const source = new EventSource(
