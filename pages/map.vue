@@ -12,12 +12,13 @@
           :vehicle-id="lineVehicleId"
           @error="onLineError"
         />
+        <GeolocationFilterCircle />
         <BusPopup v-if="popupInformation" :info="popupInformation" />
       </RawMap>
       <FilterSidebarBtn v-if="!isFilterSidebarOpen" :state="filterSidebar" />
     </VCol>
     <VCol v-if="isFilterSidebarOpen" :cols="3" style="height: 100%">
-      <FilterSidebar />
+      <FilterSidebar context="map" />
     </VCol>
     <VCol v-if="sidebarOpen" :cols="5" style="height: 100%">
       <NuxtPage :page-key="busId" />

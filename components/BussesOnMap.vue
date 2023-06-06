@@ -5,7 +5,7 @@
 
 <script setup lang="ts">
 import { MapboxLayer, MapboxSource } from "@studiometa/vue-mapbox-gl";
-import { GeoJSONSourceRaw, Layer, Map, MapLayerMouseEvent } from "mapbox-gl";
+import { GeoJSONSourceRaw, Layer, MapLayerMouseEvent } from "mapbox-gl";
 
 // Constants
 const BUS_LAYER_ID = "busses";
@@ -14,11 +14,7 @@ const BUS_SOURCE_ID = "busses-source";
 const emit = defineEmits(["click", "vehicle-hover", "vehicle-hover-end"]);
 
 // mapbox-map is provided by the MapboxMap component
-const map = inject<Ref<Map>>("mapbox-map");
-if (!map) {
-  throw new Error("mapbox-map could not be injected into BussesOnMap");
-}
-
+const map = useMap();
 //
 // Mouse Enter
 //
@@ -27,7 +23,9 @@ const onBusLayerMouseEnter = (e: MapLayerMouseEvent) => {
   // See example at https://docs.mapbox.com/mapbox-gl-js/example/popup-on-hover/
 
   // Change the cursor style as a UI indicator.
-  map.value.getCanvas().style.cursor = "pointer";
+  if (map.value) {
+    map.value.getCanvas().style.cursor = "pointer";
+  }
 
   // get selected feature
   // a feature is an element on the map we added
@@ -48,19 +46,21 @@ const onBusLayerMouseEnter = (e: MapLayerMouseEvent) => {
     vehicleState: vehicleForMapboxEvent(e),
   });
 };
-map.value.on("mouseenter", "busses", onBusLayerMouseEnter);
-onUnmounted(() => map.value.off("mouseenter", "busses", onBusLayerMouseEnter));
+map.value?.on("mouseenter", "busses", onBusLayerMouseEnter);
+onUnmounted(() => map.value?.off("mouseenter", "busses", onBusLayerMouseEnter));
 
 //
 // Mouse Leave
 //
 
 const onBusLayerMouseLeave = () => {
-  map.value.getCanvas().style.cursor = "";
+  if (map.value) {
+    map.value.getCanvas().style.cursor = "";
+  }
   emit("vehicle-hover-end");
 };
-map.value.on("mouseleave", "busses", onBusLayerMouseLeave);
-onUnmounted(() => map.value.off("mouseleave", "busses", onBusLayerMouseLeave));
+map.value?.on("mouseleave", "busses", onBusLayerMouseLeave);
+onUnmounted(() => map.value?.off("mouseleave", "busses", onBusLayerMouseLeave));
 
 //
 // Mouse Click
@@ -73,8 +73,8 @@ const onBusLayerMouseClick = (e: MapLayerMouseEvent) => {
   }
   emit("click", vehicle);
 };
-map.value.on("click", "busses", onBusLayerMouseClick);
-onUnmounted(() => map.value.off("click", "busses", onBusLayerMouseClick));
+map.value?.on("click", "busses", onBusLayerMouseClick);
+onUnmounted(() => map.value?.off("click", "busses", onBusLayerMouseClick));
 
 //
 // Data

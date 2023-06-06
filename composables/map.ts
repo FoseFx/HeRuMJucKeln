@@ -1,3 +1,4 @@
+import { Map } from "mapbox-gl";
 import { TripItineraryLink } from "~/swagger/Api";
 
 export function itineraryLinksToGeoJSON(
@@ -21,4 +22,10 @@ export function gpsPositionToGeoJSONCoordinate(gps?: {
   longitude?: number;
 }) {
   return [gps?.longitude as number, gps?.latitude as number];
+}
+
+export function useMap() {
+  const mapState = useState<Map | null>("mapbox-map", () => null);
+
+  return mapState;
 }

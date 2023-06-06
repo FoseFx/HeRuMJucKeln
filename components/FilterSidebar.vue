@@ -19,9 +19,8 @@
         <VContainer style="display: flex; justify-content: end">
           <VBtn
             density="comfortable"
-            :disabled="!isFiltered"
-            :variant="!isFiltered ? 'text' : undefined"
-            @click="resetAll()"
+            :disabled="!filterSidebar.isFiltered.value"
+            @click="filterSidebar.clear"
           >
             Clear All
           </VBtn>
@@ -39,9 +38,8 @@
                 <VBtn
                   class="inner-clear-btn"
                   density="comfortable"
-                  :disabled="!isLinesFiltered"
-                  :variant="!isLinesFiltered ? 'text' : undefined"
-                  @click.stop="resetLinesFilter()"
+                  :disabled="!filterSidebar.isLinesFiltered.value"
+                  @click.stop="filterSidebar.clearLinesFilter"
                 >
                   Clear
                 </VBtn>
@@ -62,6 +60,54 @@
                     :value="line.id"
                     class="half-cb"
                   />
+                </div>
+              </VExpansionPanelText>
+            </VExpansionPanel>
+            <VExpansionPanel value="geolocation" eager>
+              <VExpansionPanelTitle style="justify-content: space-between">
+                <div>Ort</div>
+                <div style="flex: 1"></div>
+                <VBtn
+                  class="inner-clear-btn"
+                  density="comfortable"
+                  :disabled="!filterSidebar.isGeolocationFiltered.value"
+                  @click.stop="filterSidebar.clearGeolocationFilter"
+                >
+                  Clear
+                </VBtn>
+              </VExpansionPanelTitle>
+              <VExpansionPanelText>
+                <div
+                  style="
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                  "
+                >
+                  <VTextField
+                    v-model="radius"
+                    label="Radius"
+                    suffix="km"
+                    type="number"
+                    :step="0.1"
+                  >
+                    <template #prepend>
+                      <VBtn
+                        icon
+                        title="Auf die Karte droppen"
+                        :disabled="context === 'table'"
+                        :draggable="context !== 'table'"
+                        style="cursor: grab"
+                        @dragend="onMapMarkerDropped"
+                      >
+                        <VIcon
+                          style="cursor: grab"
+                          disabled
+                          icon="mdi-map-marker"
+                        />
+                      </VBtn>
+                    </template>
+                  </VTextField>
                 </div>
               </VExpansionPanelText>
             </VExpansionPanel>
@@ -87,8 +133,9 @@
 </template>
 
 <script setup lang="ts">
+defineProps<{ context: "map" | "table" }>();
 const dark = useDark();
-const { data: lines, isResolved: linesFetched } = useLines();
+const { data: lines } = useLines();
 
 const filterSidebar = useFilterSidebar();
 
@@ -96,20 +143,29 @@ const panel = ref(
   filterSidebar.onlyShowLinesFilter.value.length > 0 ? ["line"] : []
 );
 
-const isLinesFiltered = computed(
-  () =>
-    linesFetched && (filterSidebar.onlyShowLinesFilter.value?.length ?? 0) > 0
-);
+const map = useMap();
 
-function resetLinesFilter() {
-  filterSidebar.onlyShowLinesFilter.value = [];
+const radius = ref(2);
+
+watch(radius, () => {
+  if (filterSidebar.geolocationFilter.value) {
+    filterSidebar.geolocationFilter.value = {
+      lngLat: filterSidebar.geolocationFilter.value.lngLat,
+      radius: radius.value,
+    };
+  }
+});
+
+function onMapMarkerDropped() {
+  // Right after dropping, we get a "mousemove" event from which we can obtain the coordinates
+  map.value?.once("mousemove", updateGeofilterCoordinates);
 }
 
-function resetAll() {
-  resetLinesFilter();
+function updateGeofilterCoordinates({
+  lngLat,
+}: mapboxgl.MapMouseEvent & mapboxgl.EventData) {
+  filterSidebar.geolocationFilter.value = { lngLat, radius: radius.value };
 }
-
-const isFiltered = isLinesFiltered; // compute multiple filters together when we have more
 </script>
 
 <style scoped>

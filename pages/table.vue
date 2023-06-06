@@ -5,7 +5,7 @@
       <FilterSidebarBtn v-if="!isFilterSidebarOpen" :state="filterSidebar" />
     </VCol>
     <VCol v-if="isFilterSidebarOpen" :cols="3">
-      <FilterSidebar />
+      <FilterSidebar context="table" />
     </VCol>
   </VRow>
 </template>

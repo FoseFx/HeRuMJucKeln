@@ -101,19 +101,28 @@ function filterVehicles(allVehicles: Ref<VehicleState[]>) {
   const filterSidebar = useFilterSidebar();
 
   return computed(() => {
-    if (!allVehicles.value) {
-      return [];
-    } else if (filterSidebar.onlyShowLinesFilter.value.length === 0) {
-      return allVehicles.value.filter((vehicle) => vehicle.gpsPosition);
-    } else {
-      return allVehicles.value
-        .filter((vehicle) => vehicle.gpsPosition)
-        .filter((v) =>
-          filterSidebar.onlyShowLinesFilter.value.find(
-            (l) => v.operational?.line?.uid === l
-          )
-        );
+    let result = allVehicles.value?.filter((v) => v.gpsPosition) ?? [];
+
+    if (filterSidebar.onlyShowLinesFilter.value.length > 0) {
+      result = result.filter((v) =>
+        filterSidebar.onlyShowLinesFilter.value.find(
+          (l) => v.operational?.line?.uid === l
+        )
+      );
     }
+
+    if (filterSidebar.geolocationFilter.value) {
+      result = result.filter((v) => {
+        return (
+          calcDist(filterSidebar.geolocationFilter.value!.lngLat, {
+            lng: v.gpsPosition!.longitude,
+            lat: v.gpsPosition!.latitude,
+          }) <= filterSidebar.geolocationFilter.value!.radius
+        );
+      });
+    }
+
+    return result;
   });
 }
 

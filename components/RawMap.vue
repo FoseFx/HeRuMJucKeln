@@ -41,9 +41,13 @@ function addScaleIndicator(map: Map) {
   map.addControl(scale);
 }
 
-function onMapCreated(map: Map) {
-  addScaleIndicator(map);
-  emit("map", map);
+const map = useMap();
+
+function onMapCreated(m: Map) {
+  addScaleIndicator(m);
+  emit("map", m);
+
+  map.value = m;
 }
 </script>
 
