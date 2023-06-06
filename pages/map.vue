@@ -9,8 +9,8 @@
         />
         <LineOnMap
           v-if="lineVehicleId"
+          :key="lineVehicleId"
           :vehicle-id="lineVehicleId"
-          @error="onLineError"
         />
         <GeolocationFilterCircle />
         <BusPopup v-if="popupInformation" :info="popupInformation" />
@@ -38,6 +38,8 @@ import { VehicleState } from "~/swagger/Api";
 
 const filterSidebar = useFilterSidebar();
 const { isFilterSidebarOpen, closeFilterSidebar } = filterSidebar;
+
+useItinerariesForAllVehicles(); // fetch, so data available faster when needed
 
 onMounted(() => {
   filterSidebar.openIfFiltered();
@@ -101,11 +103,6 @@ const lineVehicleId = computed(() =>
     ? popupInformation.value.vehicleState.identification.uid
     : clickedVehicle.value?.identification?.uid
 );
-
-// TODO: aggregate and show errors
-function onLineError(e: Error) {
-  console.error(e);
-}
 </script>
 
 <style scoped>

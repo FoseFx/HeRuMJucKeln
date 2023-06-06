@@ -415,10 +415,15 @@ export interface TripItinerariesResponse {
   data?: TripItinerary[];
 }
 
+export interface Route {
+  displayText: string;
+  uid: string;
+}
+
 /** A trip itinerary consists of a trip's route (i.e. its geographical route through the region) and trip specific information like the arrival and departure times and information about passenger demands, dispatching and so on. An itinerary mainly consists of its served links that are consisting of a start and an end node. Those nodes are associated to net points of the traffic network. */
 export interface TripItinerary {
   identification?: any;
-  route?: any;
+  route?: Route;
   links?: TripItineraryLink[];
 }
 
@@ -633,7 +638,7 @@ export interface VehicleOperationalData {
     displayText?: string;
   };
   duty?: DutyIdentification;
-  route?: any;
+  route?: Route;
 }
 
 export interface WorkingSetIdentification {

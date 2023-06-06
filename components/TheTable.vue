@@ -99,19 +99,27 @@ const headers: DataTableHeader[] = [
 
 const filteredVehicles = refThrottled(useFilteredVehicleState$(), 2000);
 
+const neighbouringVehicles = useNeighbouringVehiclesForAllVehicles();
+
 const items = computed<TableEntry[]>(() =>
-  filteredVehicles.value.map((vehicle) => ({
-    vehicleId: vehicle.identification.displayText,
-    driverName: vehicle.operational?.driver?.displayText,
-    tenant: vehicle.tenant,
-    line: vehicle.operational?.line?.displayText as string,
-    deviation: vehicle.deviation,
-    destination: vehicle.destination?.lastStopName,
-    predecessor: "TODO",
-    successor: "TODO",
-  }))
+  filteredVehicles.value.map((vehicle) => {
+    const nb = neighbouringVehicles.value.find(
+      (n) => vehicle.identification.uid === n.vuid
+    );
+    return {
+      vehicleId: vehicle.identification.displayText,
+      driverName: vehicle.operational?.driver?.displayText,
+      tenant: vehicle.tenant,
+      line: vehicle.operational?.line?.displayText as string,
+      deviation: vehicle.deviation,
+      destination: vehicle.destination?.lastStopName,
+      predecessor: nb?.prev?.identification.displayText, // TODO
+      successor: nb?.next?.identification.displayText, // TODO
+    };
+  })
 );
 </script>
+
 <style scoped>
 .searchbar {
   width: 50%;
