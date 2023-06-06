@@ -8,28 +8,28 @@
   <VRow>
     <VCol>
       <VTable>
-        <TBody>
-          <Tr v-if="vehicleState.operational?.driver">
-            <Td>Fahrer</Td>
-            <Td>{{ vehicleState.operational?.driver?.displayText }}</Td>
-          </Tr>
-          <Tr>
-            <Td>Fahrzeug</Td>
-            <Td>{{ vehicleState.identification.displayText }}</Td>
-          </Tr>
-          <Tr>
-            <Td>Dienstleister</Td>
-            <Td>{{ vehicleState.tenant }}</Td>
-          </Tr>
-          <Tr v-if="vehicleState.occupancy?.range">
-            <Td>Auslastung</Td>
-            <Td :style="{ color: getOccupancyColor(vehicleState.occupancy) }">
+        <tbody>
+          <tr v-if="vehicleState.operational?.driver">
+            <td>Fahrer</td>
+            <td>{{ vehicleState.operational?.driver?.displayText }}</td>
+          </tr>
+          <tr>
+            <td>Fahrzeug</td>
+            <td>{{ vehicleState.identification.displayText }}</td>
+          </tr>
+          <tr>
+            <td>Dienstleister</td>
+            <td>{{ vehicleState.tenant }}</td>
+          </tr>
+          <tr v-if="vehicleState.occupancy?.range">
+            <td>Auslastung</td>
+            <td :style="{ color: getOccupancyColor(vehicleState.occupancy) }">
               {{ prettifyOccupancy(vehicleState.occupancy) }}
-            </Td>
-          </Tr>
-          <Tr v-if="nextTrip">
-            <Td>Nächste Fahrt</Td>
-            <Td>
+            </td>
+          </tr>
+          <tr v-if="nextTrip">
+            <td>Nächste Fahrt</td>
+            <td>
               <VTooltip location="bottom">
                 <template #activator="{ props: tooltipProps }">
                   <span v-bind="tooltipProps">
@@ -41,9 +41,9 @@
                 <VIcon icon="mdi-arrow-right" />
                 {{ nextTrip.lastTripItineraryNode?.netPoint?.displayText }}
               </VTooltip>
-            </Td>
-          </Tr>
-        </TBody>
+            </td>
+          </tr>
+        </tbody>
       </VTable>
     </VCol>
     <VCol>

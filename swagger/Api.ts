@@ -498,8 +498,8 @@ export interface ActualArrivalDepartureTimes {
 }
 
 export interface ArrivalDepartureTime {
-  arrival?: number;
-  departure?: number;
+  arrival?: string;
+  departure?: string;
 }
 
 export enum DemandType {

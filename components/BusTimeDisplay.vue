@@ -10,7 +10,7 @@
 <script setup lang="ts">
 import date from "date-and-time";
 
-const props = defineProps<{ actual: number; planned: number }>();
+const props = defineProps<{ actual: string; planned: string }>();
 
 const timeDisplay = computed(() =>
   date.format(new Date(props.actual), "HH:mm")
