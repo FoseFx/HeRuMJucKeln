@@ -656,7 +656,8 @@ export interface NetPoint {
 
 export interface Occupancy {
   passengerCount?: number;
-  range?: [number, number];
+  // I am assuming that range will never have more than two entries
+  range?: [] | [number] | [number, number];
 }
 
 /** The operational data is present iff the registration state is OPERATIONAL or EXTERNAL. This does not necessarily hold for the sub values. They could be non-existing even if the operational data itself is present. For example, the driver data might not be present though the vehicle is operationally registered. Note that the value of the property registrationState of items in the response will never be UNREGISTERED as unregistered vehicles simply do not have a vehicle state. */

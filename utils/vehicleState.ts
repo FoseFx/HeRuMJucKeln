@@ -71,3 +71,13 @@ export const getOccupancyColor = (occupancy?: Occupancy) => {
     return "red";
   }
 };
+
+export const prettifyOccupancy = (occupany?: Occupancy) => {
+  if (!occupany?.range || occupany.range.length === 0) {
+    return "";
+  } else if (occupany.range.length === 1) {
+    return `${occupany.range[0]}%`;
+  } else {
+    return `${occupany.range[0]}% - ${occupany.range[1]}%`;
+  }
+};

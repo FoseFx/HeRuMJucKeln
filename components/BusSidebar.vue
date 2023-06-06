@@ -24,8 +24,7 @@
           <Tr v-if="vehicleState.occupancy?.range">
             <Td>Auslastung</Td>
             <Td :style="{ color: getOccupancyColor(vehicleState.occupancy) }">
-              {{ vehicleState.occupancy?.range?.[0] }}% -
-              {{ vehicleState.occupancy?.range?.[1] }}%
+              {{ prettifyOccupancy(vehicleState.occupancy) }}
             </Td>
           </Tr>
           <Tr v-if="nextTrip">
