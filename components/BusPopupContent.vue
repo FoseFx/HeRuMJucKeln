@@ -1,5 +1,5 @@
 <template>
-  <VCard class="ma-0 pa-0" variant="flat" density="compact">
+  <VCard class="ma-0 pa-2 rounded-0" variant="flat" density="compact">
     <VRow>
       <VCol>
         {{ vehicleState.identification.displayText }}

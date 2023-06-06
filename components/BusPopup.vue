@@ -3,7 +3,6 @@
     :close-button="false"
     :close-on-click="false"
     :lng-lat="info.position"
-    class="ma-0 pa-0"
   >
     <BusPopupContent :vehicle-state="info.vehicleState" />
   </MapboxPopup>
@@ -25,3 +24,10 @@ defineProps<{
   info: PopupInformation;
 }>();
 </script>
+
+<style>
+.mapboxgl-popup-content {
+  padding: 0 !important;
+  background-color: none;
+}
+</style>
