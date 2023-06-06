@@ -54,7 +54,12 @@
           :net-point="vehicleState.positionState?.toNetPoint"
           :trip="trip"
         />
-        <VTimelineItem size="x-small" dot-color="red"></VTimelineItem>
+        <VTimelineItem size="small" dot-color="red">
+          <template #icon>
+            <div class="circle" />
+            <div class="ring" />
+          </template>
+        </VTimelineItem>
         <BusStopInfo
           :net-point="vehicleState.positionState?.fromNetPoint"
           :trip="trip"
@@ -145,25 +150,79 @@ function openNextBus() {
 }
 </script>
 
-<style>
-/* Add dashed line between next and last bus-stop */
-.trip-timeline .v-timeline-item:first-child .v-timeline-divider__after,
-.trip-timeline .v-timeline-item:nth-child(2) .v-timeline-divider__before {
-  border: rgba(var(--v-border-color), var(--v-border-opacity)) dashed 1px;
-  background: none;
-}
-
-/* Remove line after first bus-stop */
-.trip-timeline .v-timeline-item:last-child .v-timeline-divider__after {
-  background: none;
-}
-
-/* Decrease opacity of last item (first stop in trip) as it is in the past */
-.trip-timeline .v-timeline-item:nth-last-child(2) .v-timeline-divider__after,
-.trip-timeline .v-timeline-item:last-child .v-timeline-divider__after {
+<style lang="scss">
+.divider-past {
   opacity: 0.3;
 }
-.trip-timeline .v-timeline-item:last-child div {
+
+.dot-past {
   opacity: 0.5;
+}
+
+.trip-timeline {
+  /* Add dashed line between next and last bus-stop */
+  .v-timeline-item:first-child .v-timeline-divider__after,
+  .v-timeline-item:nth-child(2) .v-timeline-divider__before {
+    border: rgba(var(--v-border-color), var(--v-border-opacity)) dashed 1px;
+    background: none;
+  }
+
+  /* Current position */
+  .v-timeline-item:nth-last-child(2) {
+    .v-timeline-divider__after {
+      @extend .divider-past;
+    }
+    /* Remove grey background */
+    .v-timeline-divider__dot {
+      border-style: none !important;
+      background: none !important;
+    }
+    /* Decrease size */
+    .v-timeline-divider__inner-dot {
+      width: 15px;
+      height: 15px;
+    }
+  }
+
+  /* Last stop */
+  .v-timeline-item:last-child {
+    .v-timeline-divider__after {
+      @extend .divider-past;
+    }
+    div {
+      @extend .dot-past;
+    }
+  }
+}
+
+.circle {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  position: absolute;
+}
+
+.ring {
+  border: 3px solid red;
+  border-radius: 30px;
+  height: 25px;
+  width: 25px;
+  position: absolute;
+  animation: pulsate 1s ease-out;
+  animation-iteration-count: infinite;
+  opacity: 0;
+}
+@keyframes pulsate {
+  0% {
+    transform: scale(0.1, 0.1);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.2, 1.2);
+    opacity: 0;
+  }
 }
 </style>
