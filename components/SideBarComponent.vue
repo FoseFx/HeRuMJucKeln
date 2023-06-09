@@ -37,5 +37,7 @@ const vehicle = computed(() => vehicles.value.value[0]);
 .v-card {
   padding: 1em;
   height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 </style>
