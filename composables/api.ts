@@ -62,72 +62,73 @@ export function useFilteredVehicleState(tenants?: string[]) {
   return filterVehicles(useVehicleStates(tenants));
 }
 
-let vehicleStates: Ref<VehicleState[]> | null = null;
 let vuidIxMap = new Map<string, number>(); // used to quickly apply updates
 
 export function useVehicleStates$() {
-  if (vehicleStates !== null) {
-    return vehicleStates;
-  }
+  const vehicleStates = useState<null | VehicleState[]>(
+    "vehicleState",
+    () => null
+  );
+  if (vehicleStates.value === null) {
+    vehicleStates.value = [];
+    vuidIxMap = new Map();
 
-  vehicleStates = ref<VehicleState[]>([]);
-  vuidIxMap = new Map();
+    let subscriptionId: string | null;
 
-  let subscriptionId: string | null;
+    (async () => {
+      const tenants = await api.tenants.retrieveTenants();
+      const params = { tenant: tenants };
 
-  (async () => {
-    const tenants = await api.tenants.retrieveTenants();
-    const params = { tenant: tenants };
+      const initial = await api.vehicles.retrieveVehicleStates(params);
+      if (initial) {
+        vehicleStates.value = initial;
 
-    const initial = await api.vehicles.retrieveVehicleStates(params);
-    if (initial) {
-      vehicleStates.value = initial;
-
-      for (let i = 0; i < initial.length; i++) {
-        const vuid = initial[i].identification.uid;
-        vuidIxMap.set(vuid, i);
-      }
-    }
-
-    subscriptionId = await api.vehicles.addVehicleStateChangeListener(
-      params,
-      (change: VehicleStateChange) => {
-        const vuid = change.value.identification.uid;
-        const i = vuidIxMap.get(vuid);
-
-        if (change.modifier === "UPDATE") {
-          if (typeof i !== "undefined") {
-            vehicleStates!.value[i] = change.value;
-          } else {
-            vuidIxMap.set(vuid, vehicleStates!.value.length);
-            vehicleStates!.value = [...vehicleStates!.value, change.value];
-          }
-        } else if (change.modifier === "CREATE") {
-          vuidIxMap.set(vuid, vehicleStates!.value.length);
-          vehicleStates!.value = [...vehicleStates!.value, change.value];
-        } else if (change.modifier === "DELETE") {
-          if (typeof i !== "undefined") {
-            vuidIxMap.delete(vuid);
-            vehicleStates!.value = vehicleStates!.value.filter(
-              (_, j) => j !== i
-            );
-          }
+        for (let i = 0; i < initial.length; i++) {
+          const vuid = initial[i].identification.uid;
+          vuidIxMap.set(vuid, i);
         }
       }
-    );
-    return subscriptionId;
-  })();
 
-  // Removed because of CORS errors for now:
-  // // we have to register the lifecycle hook synchronously
-  // // onBeforeUnmount(async () => {
-  // //   await Promise.allSettled([promise]); // we maybe unmounted too early
-  // //   if (subscriptionId !== null) {
-  // //     api.vehicles.removeVehicleStateChangeListener(subscriptionId);
-  // //   }
-  // // });
+      subscriptionId = await api.vehicles.addVehicleStateChangeListener(
+        params,
+        (change: VehicleStateChange) => {
+          const vuid = change.value.identification.uid;
+          const i = vuidIxMap.get(vuid);
 
-  return vehicleStates;
+          if (change.modifier === "UPDATE") {
+            if (typeof i !== "undefined") {
+              vehicleStates.value![i] = change.value;
+            } else {
+              vuidIxMap.set(vuid, vehicleStates.value!.length);
+              vehicleStates!.value = [...vehicleStates.value!, change.value];
+            }
+          } else if (change.modifier === "CREATE") {
+            vuidIxMap.set(vuid, vehicleStates.value!.length);
+            vehicleStates!.value = [...vehicleStates.value!, change.value];
+          } else if (change.modifier === "DELETE") {
+            if (typeof i !== "undefined") {
+              vuidIxMap.delete(vuid);
+              vehicleStates!.value = vehicleStates.value!.filter(
+                (_, j) => j !== i
+              );
+            }
+          }
+        }
+      );
+      return subscriptionId;
+    })();
+
+    // Removed because of CORS errors for now:
+    // // we have to register the lifecycle hook synchronously
+    // // onBeforeUnmount(async () => {
+    // //   await Promise.allSettled([promise]); // we maybe unmounted too early
+    // //   if (subscriptionId !== null) {
+    // //     api.vehicles.removeVehicleStateChangeListener(subscriptionId);
+    // //   }
+    // // });
+  }
+
+  return vehicleStates as Ref<VehicleState[]>;
 }
 
 export function useFilteredVehicleState$() {

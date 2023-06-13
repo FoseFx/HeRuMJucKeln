@@ -30,6 +30,20 @@
         {{ value.deviation.value }} min
       </div>
     </template>
+    <template
+      #[`item.predecessor`]="{
+        item: { value },
+      }: {
+        item: { value: TableEntry },
+      }"
+    >
+      <TablePredecessorSuccessor :vehicle="value.predecessor" />
+    </template>
+    <template
+      #[`item.successor`]="{ item: { value } }: { item: { value: TableEntry } }"
+    >
+      <TablePredecessorSuccessor :vehicle="value.successor" />
+    </template>
   </VDataTable>
 </template>
 <script setup lang="ts">
@@ -46,8 +60,8 @@ interface TableEntry {
   line?: string;
   destination?: string;
   deviation?: VehicleState["deviation"];
-  predecessor?: string;
-  successor?: string;
+  predecessor?: VehicleState;
+  successor?: VehicleState;
 }
 const headers: DataTableHeader[] = [
   {
@@ -113,8 +127,8 @@ const items = computed<TableEntry[]>(() =>
       line: vehicle.operational?.line?.displayText as string,
       deviation: vehicle.deviation,
       destination: vehicle.destination?.lastStopName,
-      predecessor: nb?.prev?.identification.displayText, // TODO
-      successor: nb?.next?.identification.displayText, // TODO
+      predecessor: nb?.prev,
+      successor: nb?.next,
     };
   })
 );

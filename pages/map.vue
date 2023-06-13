@@ -21,12 +21,7 @@
       <FilterSidebar context="map" />
     </VCol>
     <VCol v-if="sidebarOpen" :cols="5" style="height: 100%">
-      <NuxtPage :page-key="busId" />
-      <SideBarComponent
-        :id="busId"
-        :vehicle-state="clickedVehicle"
-        @close="onSidebarClose"
-      />
+      <SidebarPageRouterWrapper />
     </VCol>
   </VRow>
 </template>
@@ -71,9 +66,7 @@ const router = useRouter();
 
 const mapRoutePath = route.matched[0].path;
 
-const busId = computed(() => route.params.busId as string);
-
-const sidebarOpen = computed(() => !!busId.value);
+const sidebarOpen = computed(() => route.params.busId);
 
 watch(
   sidebarOpen,
@@ -91,11 +84,6 @@ function onBusClick(vehicle: VehicleState) {
   clickedVehicle.value = vehicle;
   const path = mapRoutePath + `/${vehicle.identification.uid}`;
   router.push(path);
-}
-
-function onSidebarClose() {
-  clickedVehicle.value = undefined;
-  router.push(mapRoutePath);
 }
 
 const lineVehicleId = computed(() =>

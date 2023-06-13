@@ -82,7 +82,6 @@
 
 <script setup lang="ts">
 import date from "date-and-time";
-import { useBlocks } from "~/composables/api";
 import { NetPoint, VehicleState } from "~/swagger/Api";
 
 const props = defineProps<{ vehicleState: VehicleState }>();

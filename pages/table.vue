@@ -7,12 +7,19 @@
     <VCol v-if="isFilterSidebarOpen" :cols="3">
       <FilterSidebar context="table" />
     </VCol>
+    <VCol v-if="sidebarOpen">
+      <SidebarPageRouterWrapper />
+    </VCol>
   </VRow>
 </template>
 
 <script setup lang="ts">
 const filterSidebar = useFilterSidebar();
 const { isFilterSidebarOpen } = filterSidebar;
+
+const route = useRoute();
+
+const sidebarOpen = computed(() => route.params.busId);
 
 onMounted(() => {
   filterSidebar.openIfFiltered();
