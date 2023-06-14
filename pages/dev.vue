@@ -1,6 +1,13 @@
 <template>
   <div>
-    <h1>Development Page</h1>
+    <h1>
+      Development Page
+      <img
+        style="display: inline-block"
+        height="40"
+        src="~/assets/potato.png"
+      />
+    </h1>
     <VBtn @click="addNotification">Add new notification</VBtn>
     <VBtn @click="fetchVehicles()">Get Vehicles (open console)</VBtn>
     <br />
