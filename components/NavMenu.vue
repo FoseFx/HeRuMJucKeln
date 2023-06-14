@@ -6,7 +6,11 @@
     <NuxtLink to="/table" title="Tabelle anzeigen">
       <VIcon icon="mdi-table" />
     </NuxtLink>
-    <NuxtLink to="/log" title="Ereignistabelle anzeigen">
+    <NuxtLink
+      v-if="config.public.isDev"
+      to="/log"
+      title="Ereignistabelle anzeigen"
+    >
       <VIcon icon="mdi-format-list-bulleted" />
     </NuxtLink>
     <NuxtLink
