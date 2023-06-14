@@ -8,55 +8,146 @@ export type InternalNotification = {
 export const useNotifications = () =>
   useState<InternalNotification[]>("notifications", () => []);
 
-export function useFilterSidebar(initialState = true) {
-  let isFilterSidebarOpen = ref(initialState);
+//
+// Filter Sidebar State
+//
 
-  const onlyShowLinesFilter = useState<string[]>("show-lines-filter", () => []);
-
-  const geolocationFilter = useState<{
-    lngLat: mapboxgl.LngLat;
-    radius: number;
-  } | null>("geolocation-filter", () => null);
-
-  isFilterSidebarOpen = useLocalStorage("filter-sidebar-open", initialState);
-
-  const isLinesFiltered = computed(() => onlyShowLinesFilter.value.length > 0);
+function useLineFilterState() {
+  const linesFilter = useState<string[]>("show-lines-filter", () => []);
+  const isLinesFiltered = computed(() => linesFilter.value.length > 0);
 
   function clearLinesFilter() {
-    onlyShowLinesFilter.value = [];
-  }
-
-  const isGeolocationFiltered = computed(
-    () => geolocationFilter.value !== null
-  );
-
-  function clearGeolocationFilter() {
-    geolocationFilter.value = null;
+    linesFilter.value = [];
   }
 
   return {
-    isFilterSidebarOpen: readonly(isFilterSidebarOpen),
-    onlyShowLinesFilter,
-    geolocationFilter,
+    linesFilter,
     isLinesFiltered,
-    isGeolocationFiltered,
-    isFiltered: computed(() => isLinesFiltered || isGeolocationFiltered),
-    openFilterSidebar() {
-      isFilterSidebarOpen.value = true;
-    },
-    openIfFiltered() {
-      if (onlyShowLinesFilter.value.length > 0 || geolocationFilter.value) {
-        this.openFilterSidebar();
-      }
-    },
-    closeFilterSidebar() {
-      isFilterSidebarOpen.value = false;
-    },
     clearLinesFilter,
-    clearGeolocationFilter,
-    clear() {
-      clearLinesFilter();
-      clearGeolocationFilter();
-    },
+  };
+}
+
+function useGeoFilterState() {
+  const geoFilter = useState<{
+    lngLat: mapboxgl.LngLat;
+    radius: number;
+  } | null>("geo-filter", () => null);
+
+  const isGeoFiltered = computed(() => geoFilter.value !== null);
+
+  function clearGeoFilter() {
+    geoFilter.value = null;
+  }
+
+  function setGeoFilter(
+    lngLat: mapboxgl.LngLat,
+    radius = geoFilter.value?.radius ?? 2
+  ) {
+    geoFilter.value = {
+      lngLat,
+      radius,
+    };
+  }
+
+  function maybeSetRadius(radius: number) {
+    if (!geoFilter.value) return;
+    geoFilter.value = {
+      ...geoFilter.value,
+      radius,
+    };
+  }
+
+  return {
+    geoFilter,
+    isGeoFiltered,
+    setGeoFilter,
+    maybeSetRadius,
+    clearGeoFilter,
+  };
+}
+
+function useTimeFilterState() {
+  const MIN = -5;
+  const MAX = 20;
+
+  const DEFAULT_RANGE: [number, number] = [MIN, MAX];
+
+  const timeFilter = useState<[number, number]>(
+    "time-filter",
+    () => DEFAULT_RANGE
+  );
+  const isTimeFiltered = computed(
+    () =>
+      !(
+        timeFilter.value[0] === DEFAULT_RANGE[0] &&
+        timeFilter.value[1] === DEFAULT_RANGE[1]
+      )
+  );
+
+  function clearTimeFilter() {
+    timeFilter.value = DEFAULT_RANGE;
+  }
+
+  return {
+    DEFAULT_RANGE,
+    timeFilter,
+    isTimeFiltered,
+    clearTimeFilter,
+  };
+}
+
+export function useFilterSidebar(initialState = true) {
+  // Open
+
+  const isFilterSidebarOpen = useLocalStorage(
+    "filter-sidebar-open",
+    initialState
+  );
+
+  function openFilterSidebar() {
+    isFilterSidebarOpen.value = true;
+  }
+
+  function closeFilterSidebar() {
+    isFilterSidebarOpen.value = false;
+  }
+
+  // Filters
+
+  const lineFilterState = useLineFilterState();
+  const geoFilterState = useGeoFilterState();
+  const timeFilterState = useTimeFilterState();
+
+  // Computed
+
+  const isFiltered = computed(
+    () =>
+      lineFilterState.isLinesFiltered.value ||
+      geoFilterState.isGeoFiltered.value ||
+      timeFilterState.isTimeFiltered.value
+  );
+
+  function openIfFiltered() {
+    if (isFiltered.value) {
+      openFilterSidebar();
+    }
+  }
+
+  const clear = () => {
+    lineFilterState.clearLinesFilter();
+    geoFilterState.clearGeoFilter();
+    timeFilterState.clearTimeFilter();
+  };
+
+  return {
+    isFilterSidebarOpen: readonly(isFilterSidebarOpen),
+    ...lineFilterState,
+    ...geoFilterState,
+    ...timeFilterState,
+    isFiltered,
+    openFilterSidebar,
+    openIfFiltered,
+    closeFilterSidebar,
+    clear,
   };
 }

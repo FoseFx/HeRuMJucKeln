@@ -136,27 +136,34 @@ export function useFilteredVehicleState$() {
 }
 
 function filterVehicles(allVehicles: Ref<VehicleState[]>) {
-  const filterSidebar = useFilterSidebar();
+  const filterState = useFilterSidebar();
 
   return computed(() => {
     let result = allVehicles.value?.filter((v) => v.gpsPosition) ?? [];
 
-    if (filterSidebar.onlyShowLinesFilter.value.length > 0) {
+    if (filterState.isLinesFiltered.value) {
       result = result.filter((v) =>
-        filterSidebar.onlyShowLinesFilter.value.find(
+        filterState.linesFilter.value.find(
           (l) => v.operational?.line?.uid === l
         )
       );
     }
 
-    if (filterSidebar.geolocationFilter.value) {
-      result = result.filter((v) => {
-        return (
-          calcDist(filterSidebar.geolocationFilter.value!.lngLat, {
-            lng: v.gpsPosition!.longitude,
-            lat: v.gpsPosition!.latitude,
-          }) <= filterSidebar.geolocationFilter.value!.radius
-        );
+    if (filterState.isGeoFiltered.value) {
+      result = result.filter((vehicle) => {
+        const { lngLat: filterLocation, radius } = filterState.geoFilter.value!;
+        const vehicleLocation = lngLatOfVehicle(vehicle);
+        if (!vehicleLocation) return false;
+        return calcDist(filterLocation, vehicleLocation) <= radius;
+      });
+    }
+
+    if (filterState.isTimeFiltered.value) {
+      result = result.filter((vehicle) => {
+        const [lower, upper] = filterState.timeFilter.value!;
+        const val = vehicle.deviation?.value;
+        if (typeof val !== "number") return true;
+        return lower <= val && val <= upper;
       });
     }
 

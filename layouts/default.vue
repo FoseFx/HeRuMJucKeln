@@ -1,12 +1,14 @@
 <template>
-  <div>
-    <NotificationPopup />
-    <TopBar />
-    <NavMenu />
-    <div class="content">
-      <NuxtPage />
+  <VApp>
+    <div>
+      <NotificationPopup />
+      <TopBar />
+      <NavMenu />
+      <div class="content">
+        <NuxtPage />
+      </div>
     </div>
-  </div>
+  </VApp>
 </template>
 
 <script setup lang="ts">

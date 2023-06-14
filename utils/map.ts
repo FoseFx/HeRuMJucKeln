@@ -1,4 +1,18 @@
 import { AnySourceData, LngLat } from "mapbox-gl";
+import { VehicleState } from "~/swagger/Api";
+
+export function lngLatOfVehicle(
+  vehicle: VehicleState
+): { lng: number; lat: number } | null {
+  const { gpsPosition } = vehicle;
+  if (!gpsPosition || !gpsPosition.longitude || !gpsPosition.latitude)
+    return null;
+
+  return {
+    lng: gpsPosition.longitude,
+    lat: gpsPosition.latitude,
+  };
+}
 
 // Radius of earth
 const R = 6371000;
