@@ -7,7 +7,7 @@ export const getDeviationSemanticsColor = (
     case "ON_TIME":
       return "green";
     case "SUBOPTIMAL":
-      return "yellow";
+      return "#D18700"; // dark orange
     case "PROBLEMATIC":
       return "red";
     case "WAITING":
@@ -64,7 +64,7 @@ export const getOccupancyColor = (occupancy?: Occupancy) => {
   } else if (lowerPercentage < 25) {
     return "green";
   } else if (lowerPercentage < 50) {
-    return "yellow";
+    return "#D18700";
   } else if (lowerPercentage < 75) {
     return "orange";
   } else {
