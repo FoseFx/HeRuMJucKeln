@@ -1,13 +1,13 @@
 <template>
-  <VRow no-gutters>
-    <VCol style="position: relative">
+  <VRow no-gutters style="position: relative">
+    <VCol>
       <TheTable />
       <FilterSidebarBtn v-if="!isFilterSidebarOpen" :state="filterSidebar" />
     </VCol>
-    <VCol v-if="isFilterSidebarOpen" :cols="3">
+    <VCol v-if="isFilterSidebarOpen" :cols="3" class="sidebar">
       <FilterSidebar context="table" />
     </VCol>
-    <VCol v-if="sidebarOpen">
+    <VCol v-if="sidebarOpen" :cols="3" class="sidebar">
       <SidebarPageRouterWrapper />
     </VCol>
   </VRow>
@@ -25,3 +25,18 @@ onMounted(() => {
   filterSidebar.openIfFiltered();
 });
 </script>
+
+<style>
+.sidebar {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  right: 0;
+  height: 100%;
+  background: white;
+}
+
+.dark .sidebar {
+  background: black;
+}
+</style>
