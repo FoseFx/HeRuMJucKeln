@@ -20,7 +20,7 @@
           <VBtn
             density="comfortable"
             :disabled="!filterSidebar.isFiltered.value"
-            @click="filterSidebar.clear"
+            @click="filterSidebar.clear()"
           >
             Clear All
           </VBtn>
@@ -39,7 +39,7 @@
                   class="inner-clear-btn"
                   density="comfortable"
                   :disabled="!filterSidebar.isLinesFiltered.value"
-                  @click.stop="filterSidebar.clearLinesFilter"
+                  @click.stop="resetLinesFilter"
                 >
                   Clear
                 </VBtn>
@@ -52,8 +52,19 @@
                     justify-content: center;
                   "
                 >
+                  <VTextField
+                    v-model="search"
+                    class="searchbar"
+                    label="Search"
+                    prepend-inner-icon="mdi-magnify"
+                    single-line
+                    hide-details
+                    clearable
+                    @click:clear="resetSearchBar()"
+                  >
+                  </VTextField>
                   <VCheckbox
-                    v-for="line of lines"
+                    v-for="line of filteredLines"
                     :key="line.id"
                     v-model="filterSidebar.onlyShowLinesFilter.value"
                     :label="line.name"
@@ -136,12 +147,19 @@
 defineProps<{ context: "map" | "table" }>();
 const dark = useDark();
 const { data: lines } = useLines();
-
 const filterSidebar = useFilterSidebar();
 
 const panel = ref(
   filterSidebar.onlyShowLinesFilter.value.length > 0 ? ["line"] : []
 );
+const search = ref("");
+const filteredLines = computed(() => {
+  if (lines.value != null && search.value != null) {
+    return lines.value.filter((line) => {
+      return line.name.toLowerCase().includes(search.value.toLowerCase());
+    });
+  }
+});
 
 const map = useMap();
 
@@ -166,6 +184,14 @@ function updateGeofilterCoordinates({
 }: mapboxgl.MapMouseEvent & mapboxgl.EventData) {
   filterSidebar.geolocationFilter.value = { lngLat, radius: radius.value };
 }
+function resetLinesFilter() {
+  filterSidebar.clearLinesFilter();
+  resetSearchBar();
+}
+
+function resetSearchBar() {
+  search.value = "";
+}
 </script>
 
 <style scoped>
@@ -187,5 +213,9 @@ aside {
   width: 50%;
   display: flex;
   align-items: center;
+}
+
+.searchbar {
+  width: 100%;
 }
 </style>

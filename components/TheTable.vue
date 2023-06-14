@@ -1,7 +1,7 @@
 <template>
   <VTextField
     v-model="search"
-    append-icon="mdi-magnify"
+    prepend-inner-icon="mdi-magnify"
     label="Search"
     single-line
     hide-details
