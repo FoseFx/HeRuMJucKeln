@@ -49,14 +49,14 @@ function getIconColor(vehicleDeviation: Deviation | undefined) {
       (deviation >= 0 && deviation <= 3) ||
       (deviation < 0 && deviation > -1)
     ) {
-      return "#388B66"; // green
+      return "var(--color-ok)"; // green
     } else if (
       (deviation > 3 && deviation <= 6) ||
       (deviation <= -1 && deviation >= -3)
     ) {
-      return "#F98C11"; // orange
+      return "var(--color-warning)"; // orange
     } else {
-      return "#FF0000"; // red
+      return "var(--color-alert)"; // red
     }
   }
 }

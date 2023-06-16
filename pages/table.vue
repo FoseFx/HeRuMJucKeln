@@ -26,7 +26,7 @@ onMounted(() => {
 });
 </script>
 
-<style>
+<style scoped>
 .sidebar {
   position: absolute;
   z-index: 3;
