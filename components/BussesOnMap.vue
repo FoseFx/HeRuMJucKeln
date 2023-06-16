@@ -88,14 +88,14 @@ const busLayer: Layer = {
   paint: {
     "circle-radius": 6,
     // TODO: Change color for different busses. Or one layer for each color?
-    "circle-color": "#B42222",
+    "circle-color": ["get", "color"],
   },
 };
 
 const filteredVehicles = useFilteredVehicleState$();
 
 // Transform API-Data to source for map
-const source: Ref<GeoJSONSourceRaw> = computed(
+const source: ComputedRef<GeoJSONSourceRaw> = computed(
   () =>
     ({
       type: "geojson",
@@ -105,6 +105,7 @@ const source: Ref<GeoJSONSourceRaw> = computed(
           type: "Feature",
           properties: {
             vehicleIndex: i,
+            color: getDeviationSemanticsColor(vehicle.deviation?.semantics),
           },
           geometry: {
             type: "Point",
