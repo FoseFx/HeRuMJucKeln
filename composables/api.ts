@@ -399,3 +399,14 @@ export function useBlocks(params?: {
   console.log("Use block");
   return { ...usePromise(ref(api.blocks.retrieveCondensedBlocks(params))) };
 }
+
+export async function useStreename(coords: {
+  lng: number;
+  lat: number;
+}): Promise<string> {
+  const revCoding = await api.mapbox.reverseGeocoding(coords);
+  if (!revCoding.features[0]) {
+    return "";
+  }
+  return revCoding.features[0].text_de;
+}

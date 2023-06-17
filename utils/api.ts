@@ -8,7 +8,7 @@ import type {
   CondensedBlocksResponse,
 } from "~/swagger/Api";
 
-const { apiHost } = useRuntimeConfig().public;
+const { apiHost, mapbox } = useRuntimeConfig().public;
 
 type HTTPMethod =
   | "GET"
@@ -20,6 +20,14 @@ type HTTPMethod =
   | "CONNECT"
   | "OPTIONS"
   | "TRACE";
+
+interface GeocodingFeature {
+  text_de: string;
+}
+
+interface GeocodingResponse {
+  features: GeocodingFeature[];
+}
 
 function callApi<T>(
   endpoint: string,
@@ -172,6 +180,18 @@ export const api = {
       return Array.from(linesMap)
         .map(([id, name]) => ({ id, name }))
         .sort((a, b) => (a.name > b.name ? 1 : a.name === b.name ? 0 : -1));
+    },
+  },
+  mapbox: {
+    reverseGeocoding(lnglat: { lng: number; lat: number }) {
+      const url = new URL(
+        `/geocoding/v5/mapbox.places/${lnglat.lng},${lnglat.lat}.json`,
+        mapbox.apiHost
+      );
+      url.searchParams.set("access_token", mapbox.pk);
+      url.searchParams.set("language", "de");
+      url.searchParams.set("types", "address");
+      return $fetch<GeocodingResponse>(url.toString());
     },
   },
 };

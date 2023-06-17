@@ -26,6 +26,7 @@
           </VBtn>
         </template>
       </VTextField>
+      {{ streetname }}
     </div>
   </FilterPanel>
 </template>
@@ -38,6 +39,8 @@ const filterState = useFilterSidebar();
 const map = useMap();
 
 const radius = ref(filterState.geoFilter.value?.radius ?? 2); // local copy of radius, which can be 2-way bound to input
+
+const streetname = filterState.geoFilterStreetname;
 
 watch(radius, (radius) => filterState.maybeSetRadius(radius), {
   immediate: true,

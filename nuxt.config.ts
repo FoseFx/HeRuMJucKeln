@@ -34,6 +34,7 @@ export default defineNuxtConfig({
           light: "mapbox://styles/fosefx/clgoas59s00f701pcg6qud1hh", // Decimal Light
           dark: "mapbox://styles/fosefx/clgobc19v00gn01qxgrex6vms", // Decimal Dark
         },
+        apiHost: process.env.MAPBOX_HOST || "https://api.mapbox.com",
       },
       apiHost: process.env.IVU_API_HOST || "https://rwth.ivu.de/fl",
     },

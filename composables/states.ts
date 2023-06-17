@@ -45,6 +45,15 @@ function useGeoFilterState() {
 
   const isGeoFiltered = computed(() => geoFilter.value !== null);
 
+  const fallback = "Pin auf Karte ziehen";
+
+  const lngLat = computed(() => geoFilter.value?.lngLat);
+
+  const geoFilterStreetname = computedAsync(
+    () => (lngLat.value ? useStreename(lngLat.value) : fallback),
+    fallback
+  );
+
   function clearGeoFilter() {
     geoFilter.value = null;
   }
@@ -70,6 +79,7 @@ function useGeoFilterState() {
   return {
     geoFilter,
     isGeoFiltered,
+    geoFilterStreetname,
     setGeoFilter,
     maybeSetRadius,
     clearGeoFilter,
