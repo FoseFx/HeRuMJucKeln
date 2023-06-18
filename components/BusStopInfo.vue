@@ -6,11 +6,15 @@
         :actual="departure.actual"
         :planned="departure.planned"
       />
+      <!-- No jumping around while loading trip -->
+      <div v-else class="placeholder">00:00 (0 sec)</div>
       <BusTimeDisplay
         v-if="arrival.actual && arrival.planned"
         :actual="arrival.actual"
         :planned="arrival.planned"
       />
+      <!-- No jumping around while loading trip -->
+      <div v-else class="placeholder">00:00 (0 sec)</div>
     </template>
     <div>
       {{ netPoint?.netPoint?.displayText }}
@@ -47,3 +51,10 @@ const departure = computed(() => ({
   planned: link.value?.start?.timeInfo?.planned?.departure,
 }));
 </script>
+
+<style scoped>
+.placeholder {
+  white-space: nowrap;
+  opacity: 0 !important;
+}
+</style>

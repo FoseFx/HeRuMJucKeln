@@ -219,7 +219,7 @@ export function useItinerariesForLotsOfVehicles(vehicleUids: string[]) {
 
 export function useNeighbouringVehiclesForSingleVehicle(
   targetVehicle: VehicleState,
-  withTargetItineraries?: Ref<TripItinerary[] | null | undefined>
+  withTargetItineraries?: TripItinerary[] | null | undefined
 ): Ref<{ prev?: VehicleState; next?: VehicleState }> {
   const ERROR_VALUE = { prev: undefined, next: undefined };
 
@@ -232,9 +232,9 @@ export function useNeighbouringVehiclesForSingleVehicle(
     withTargetItineraries ??
     useItineraries({
       vehicleUid: [targetVehicleId],
-    }).data;
+    }).data.value;
 
-  const targetLinks = computed(() => targetItineraries.value?.[0]?.links || []);
+  const targetLinks = computed(() => targetItineraries?.[0]?.links || []);
 
   const allVehicles = refThrottled(useVehicleStates$(), 60_000);
 
@@ -289,8 +289,10 @@ export function useNeighbouringVehiclesForAllVehicles() {
 
       return {
         vuid,
-        ...useNeighbouringVehiclesForSingleVehicle(vehicle, withItineraries)
-          .value,
+        ...useNeighbouringVehiclesForSingleVehicle(
+          vehicle,
+          withItineraries.value
+        ).value,
       };
     });
   });

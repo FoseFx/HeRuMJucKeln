@@ -20,6 +20,13 @@
     :items-per-page="40"
   >
     <template
+      #[`item.vehicleId`]="{ item: { value } }: { item: { value: TableEntry } }"
+    >
+      <NuxtLink :to="`/table/${value.identification?.uid}`">{{
+        value.identification?.displayText
+      }}</NuxtLink>
+    </template>
+    <template
       #[`item.deviation`]="{ item: { value } }: { item: { value: TableEntry } }"
     >
       <div
@@ -54,7 +61,7 @@ import { VehicleState } from "~/swagger/Api";
 import { DataTableHeader } from "~/types/vuetify";
 
 interface TableEntry {
-  vehicleId?: string;
+  identification?: VehicleState["identification"];
   driverName?: string;
   tenant?: string;
   line?: string;
@@ -121,7 +128,7 @@ const items = computed<TableEntry[]>(() =>
       (n) => vehicle.identification.uid === n.vuid
     );
     return {
-      vehicleId: vehicle.identification.displayText,
+      identification: vehicle.identification,
       driverName: vehicle.operational?.driver?.displayText,
       tenant: vehicle.tenant,
       line: vehicle.operational?.line?.displayText as string,

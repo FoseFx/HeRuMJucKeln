@@ -27,10 +27,10 @@
               {{ prettifyOccupancy(vehicleState.occupancy) }}
             </td>
           </tr>
-          <tr v-if="nextTrip">
+          <tr>
             <td>Nächste Fahrt</td>
             <td>
-              <VTooltip location="bottom">
+              <VTooltip v-if="nextTrip" location="bottom">
                 <template #activator="{ props: tooltipProps }">
                   <span v-bind="tooltipProps">
                     {{ nextTrip.identification.displayText }}
@@ -68,12 +68,22 @@
   </VRow>
   <VRow>
     <VCol>
-      <VBtn style="width: 100%" @click="openPreviousBus">
+      <VBtn
+        v-if="neighbouringVehicle?.value.prev"
+        :title="neighbouringVehicle.value.prev.identification.displayText"
+        style="width: 100%"
+        @click="openPreviousBus"
+      >
         <VIcon icon="mdi-arrow-left" /> Vorgänger
       </VBtn>
     </VCol>
     <VCol>
-      <VBtn style="width: 100%" @click="openNextBus">
+      <VBtn
+        v-if="neighbouringVehicle?.value.next"
+        :title="neighbouringVehicle.value.next.identification.displayText"
+        style="width: 100%"
+        @click="openNextBus"
+      >
         Nachfolger <VIcon icon="mdi-arrow-right" />
       </VBtn>
     </VCol>
@@ -84,7 +94,12 @@
 import date from "date-and-time";
 import { NetPoint, VehicleState } from "~/swagger/Api";
 
-const props = defineProps<{ vehicleState: VehicleState }>();
+const router = useRouter();
+const route = useRoute();
+
+const props = defineProps<{
+  vehicleState: VehicleState;
+}>();
 
 const tripUid = computed(() => props.vehicleState.operational?.trip?.uid);
 
@@ -139,12 +154,30 @@ const lastStation = computed<NetPoint>(() => ({
   },
 }));
 
+const neighbouringVehicle = computed(() => {
+  if (!trip.value) {
+    return null;
+  } else {
+    return useNeighbouringVehiclesForSingleVehicle(props.vehicleState, [
+      trip.value,
+    ]);
+  }
+});
+
 function openPreviousBus() {
-  // TODO #49
+  router.push(
+    `${getParentPage(route)}/${
+      neighbouringVehicle.value?.value.prev?.identification.uid
+    }`
+  );
 }
 
 function openNextBus() {
-  // TODO #49
+  router.push(
+    `${getParentPage(route)}/${
+      neighbouringVehicle.value?.value.next?.identification.uid
+    }`
+  );
 }
 </script>
 
