@@ -1,18 +1,20 @@
 <template>
   <VTextField
     v-model="search"
+    class="searchbar"
+    label="Suche nach FahrzeugIDs..."
     prepend-inner-icon="mdi-magnify"
-    label="Search"
     single-line
     hide-details
-    class="searchbar"
+    clearable
+    @click:clear="resetSearchBar()"
   >
   </VTextField>
   <VDataTable
     height="80vh"
     :headers="headers"
     fixed-header
-    :items="items"
+    :items="filteredItems"
     must-sort
     sort-desc
     :items-per-page="40"
@@ -50,8 +52,6 @@
 import { VDataTable } from "vuetify/labs/VDataTable";
 import { VehicleState } from "~/swagger/Api";
 import { DataTableHeader } from "~/types/vuetify";
-
-const search = ref("");
 
 interface TableEntry {
   vehicleId?: string;
@@ -132,10 +132,28 @@ const items = computed<TableEntry[]>(() =>
     };
   })
 );
+
+const search = ref("");
+const filteredItems = computed(() => {
+  if (items.value != null && search.value != null) {
+    return items.value.filter((item) => {
+      if (item.vehicleId != null) {
+        return item.vehicleId
+          .toLowerCase()
+          .includes(search.value.toLowerCase());
+      }
+      return false;
+      // how did we get here??
+    });
+  }
+});
+function resetSearchBar() {
+  search.value = "";
+}
 </script>
 
 <style scoped>
 .searchbar {
-  width: 50%;
+  width: 25%;
 }
 </style>
