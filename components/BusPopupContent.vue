@@ -9,12 +9,14 @@
     <VDivider class="border-opacity-100"></VDivider>
     <VCardItem density="compact">
       <VIcon
-        v-if="vehicleState.deviation != null"
+        v-if="
+          vehicleState.deviation != null && vehicleState.deviation.value != null
+        "
         icon="mdi-clock-alert-outline"
         :color="getIconColor(vehicleState.deviation)"
       >
       </VIcon>
-      {{ formatDeviation(vehicleState.deviation) + " min." }}
+      {{ formatDeviation(vehicleState.deviation) }}
     </VCardItem>
   </VCard>
 </template>
@@ -37,22 +39,21 @@ function formatDeviation(deviation: Deviation | undefined) {
    * we consider a deviation only when the vehicle is at least 3 minutes late
    * or 1 minute too early
    */
-  if (deviation != null) {
-    return deviation.value;
+  if (deviation != null && deviation.value != null) {
+    return (deviation.value as unknown) + " min";
   }
 }
 
 function getIconColor(vehicleDeviation: Deviation | undefined) {
-  const deviation = formatDeviation(vehicleDeviation);
-  if (deviation != null) {
+  if (vehicleDeviation != null && vehicleDeviation.value != null) {
     if (
-      (deviation >= 0 && deviation <= 3) ||
-      (deviation < 0 && deviation > -1)
+      (vehicleDeviation.value >= 0 && vehicleDeviation.value <= 3) ||
+      (vehicleDeviation.value < 0 && vehicleDeviation.value > -1)
     ) {
       return "var(--color-ok)"; // green
     } else if (
-      (deviation > 3 && deviation <= 6) ||
-      (deviation <= -1 && deviation >= -3)
+      (vehicleDeviation.value > 3 && vehicleDeviation.value <= 6) ||
+      (vehicleDeviation.value <= -1 && vehicleDeviation.value >= -3)
     ) {
       return "var(--color-warning)"; // orange
     } else {
