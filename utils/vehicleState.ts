@@ -35,8 +35,8 @@ export const getDeviationSemanticsText = (
 };
 
 /**
- * Color gradually goes to red when approaching 5 Minutes for late arrivals or
- * 3.5 minutes for early arrivals, as early arrivals are more critical
+ * Color gradually goes to red when approaching 5 Minutes (value -5) for late arrivals or
+ * 3.5 minutes (value 3.5) for early arrivals, as early arrivals are more critical
  */
 export const getDeviationColor = (deviationInSeconds?: number) => {
   const MINUTE = 60;
@@ -44,8 +44,8 @@ export const getDeviationColor = (deviationInSeconds?: number) => {
   if (deviationInSeconds === undefined) {
     return "grey";
   } else if (
-    deviationInSeconds > 5 * MINUTE ||
-    deviationInSeconds < -3.5 * MINUTE
+    deviationInSeconds < -5 * MINUTE ||
+    deviationInSeconds > 3.5 * MINUTE
   ) {
     return "red";
   } else if (deviationInSeconds <= 0) {
@@ -53,7 +53,9 @@ export const getDeviationColor = (deviationInSeconds?: number) => {
       Math.abs(deviationInSeconds) / (3.5 * MINUTE)
     );
   } else {
-    return getColorFromRedGreenRange(deviationInSeconds / (5 * MINUTE));
+    return getColorFromRedGreenRange(
+      Math.abs(deviationInSeconds) / (5 * MINUTE)
+    );
   }
 };
 

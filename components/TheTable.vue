@@ -69,6 +69,7 @@ interface TableEntry {
   deviation?: VehicleState["deviation"];
   predecessor?: VehicleState;
   successor?: VehicleState;
+  vehicleId?: string;
 }
 const headers: DataTableHeader[] = [
   {
@@ -136,6 +137,7 @@ const items = computed<TableEntry[]>(() =>
       destination: vehicle.destination?.lastStopName,
       predecessor: nb?.prev,
       successor: nb?.next,
+      vehicleId: vehicle.identification.uid,
     };
   })
 );

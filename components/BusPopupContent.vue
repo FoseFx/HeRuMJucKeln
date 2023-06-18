@@ -13,7 +13,7 @@
           vehicleState.deviation != null && vehicleState.deviation.value != null
         "
         icon="mdi-clock-alert-outline"
-        :color="getIconColor(vehicleState.deviation)"
+        :color="getDeviationColor(vehicleState.deviation.value)"
       >
       </VIcon>
       {{ formatDeviation(vehicleState.deviation) }}
@@ -41,24 +41,6 @@ function formatDeviation(deviation: Deviation | undefined) {
    */
   if (deviation != null && deviation.value != null) {
     return (deviation.value as unknown) + " min";
-  }
-}
-
-function getIconColor(vehicleDeviation: Deviation | undefined) {
-  if (vehicleDeviation != null && vehicleDeviation.value != null) {
-    if (
-      (vehicleDeviation.value >= 0 && vehicleDeviation.value <= 3) ||
-      (vehicleDeviation.value < 0 && vehicleDeviation.value > -1)
-    ) {
-      return "var(--color-ok)"; // green
-    } else if (
-      (vehicleDeviation.value > 3 && vehicleDeviation.value <= 6) ||
-      (vehicleDeviation.value <= -1 && vehicleDeviation.value >= -3)
-    ) {
-      return "var(--color-warning)"; // orange
-    } else {
-      return "var(--color-alert)"; // red
-    }
   }
 }
 </script>
