@@ -31,6 +31,10 @@ import { Position } from "geojson";
 import { PopupInformation } from "~/components/BusPopup.vue";
 import { VehicleState } from "~/swagger/Api";
 
+useHead({
+  title: "Karte",
+});
+
 const filterSidebar = useFilterSidebar();
 const { isFilterSidebarOpen, closeFilterSidebar } = filterSidebar;
 

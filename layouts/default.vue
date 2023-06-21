@@ -14,6 +14,10 @@
 <script setup lang="ts">
 import { useTheme } from "vuetify";
 
+useHead({
+  titleTemplate: "HeRuMJucKeln - %s",
+});
+
 const dark = useDark();
 const theme = useTheme();
 

@@ -17,6 +17,10 @@
 const filterSidebar = useFilterSidebar();
 const { isFilterSidebarOpen } = filterSidebar;
 
+useHead({
+  title: "Tabelle",
+});
+
 const route = useRoute();
 
 const sidebarOpen = computed(() => route.params.busId);

@@ -12,5 +12,10 @@
 <script setup lang="ts">
 import DashboardCard from "../components/DashboardCard.vue";
 import DashboardConfigurate from "../components/DashboardConfig.vue";
+
+useHead({
+  title: "Dashboard",
+});
+
 const chartFilter = useFilter();
 </script>

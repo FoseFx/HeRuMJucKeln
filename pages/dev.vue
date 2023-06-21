@@ -28,6 +28,10 @@
 <script setup lang="ts">
 import { VehicleRegistrationState } from "~/swagger/Api";
 
+useHead({
+  title: "Developer Page",
+});
+
 definePageMeta({
   middleware: () => useRuntimeConfig().public.isDev || abortNavigation(),
 });
