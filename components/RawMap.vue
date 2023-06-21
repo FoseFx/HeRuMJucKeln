@@ -1,7 +1,7 @@
 <template>
   <div class="map-container">
     <MapboxMap
-      :key="mapStyle"
+      :key="key"
       :access-token="mapboxConfig.pk"
       :map-style="mapStyle"
       :center="center"
@@ -29,8 +29,13 @@ const mapStyle = computed(
   () => mapboxConfig.style[dark.value ? "dark" : "light"]
 );
 
-const center = [6.07998, 50.77791]; // TODO: calculate using data
-const zoom = 10; // TODO: calculate using data
+const center = useState("map-center", () => [6.07998, 50.77791]);
+const zoom = useState("map-zoom", () => 10);
+
+// the map will rerender, when key changes
+const key = computed(
+  () => mapStyle.value + center.value.toString() + zoom.value.toString()
+);
 
 // Adds an indicator that gives the user a sense for the scale of the map.
 // I tries to keep the number on the scale simple and changes in width acordingly
@@ -49,6 +54,42 @@ function onMapCreated(m: Map) {
 
   map.value = m;
 }
+
+const vehicleStates = useVehicleStates();
+watch(
+  vehicleStates,
+  (vs) => {
+    console.log(vs.length);
+    if (!vs || vs.length === 0) return;
+
+    let maxLng = -Infinity;
+    let minLng = Infinity;
+
+    let maxLat = -Infinity;
+    let minLat = Infinity;
+
+    for (const vehicle of vs) {
+      const pos = vehicle.gpsPosition;
+      if (!pos || !pos.longitude || !pos.latitude) continue;
+
+      const { longitude: lng, latitude: lat } = pos;
+
+      if (lng > maxLng) maxLng = lng;
+      if (lng < minLng) minLng = lng;
+
+      if (lat > maxLat) maxLat = lat;
+      if (lat < minLat) minLat = lat;
+    }
+
+    center.value[0] = (maxLng + minLng) / 2;
+    center.value[1] = (maxLat + minLat) / 2;
+
+    const zoomLat = Math.log2(360 / Math.abs(maxLng - minLng)) + 1;
+    const zoomLng = Math.log2(180 / Math.abs(maxLat - minLat)) + 1;
+    zoom.value = Math.min(zoomLat, zoomLng, 23);
+  },
+  { immediate: true }
+);
 </script>
 
 <style>
