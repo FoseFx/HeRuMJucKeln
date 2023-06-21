@@ -6,8 +6,14 @@
       </VBtn>
     </template>
     <template #append>
-      <VBtn><VIcon icon="mdi-phone" color="green" />Anrufen</VBtn>
-      <VBtn><VIcon icon="mdi-cancel" color="red" />Fahrt abbrechen</VBtn>
+      <VBtn>
+        <VIcon icon="mdi-phone" color="green" />
+        <span class="hide-small">Anrufen</span>
+      </VBtn>
+      <VBtn>
+        <VIcon icon="mdi-cancel" color="red" />
+        <span class="hide-mid">Fahrt abbrechen</span>
+      </VBtn>
     </template>
     <BusSidebar :vehicle-state="vehicle" />
   </VCard>
@@ -39,5 +45,15 @@ const vehicle = computed(() => vehicles.value.value[0]);
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
+}
+@media (max-width: 1200px) {
+  .hide-mid {
+    display: none;
+  }
+}
+@media (max-width: 800px) {
+  .hide-small {
+    display: none;
+  }
 }
 </style>
