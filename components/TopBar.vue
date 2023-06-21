@@ -1,5 +1,7 @@
 <template>
   <div class="bar">
+    <StatusIndicator />
+    <span style="flex: 1"></span>
     <NotificationMenu class="notification-menu" />
   </div>
 </template>
@@ -9,8 +11,7 @@
   height: 3.5rem;
   width: 100%;
   display: flex;
-  justify-content: flex-end;
-  padding-right: 5px;
-  padding-top: 5px;
+  align-items: center;
+  padding: 0.3rem;
 }
 </style>
