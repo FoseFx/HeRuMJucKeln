@@ -6,11 +6,11 @@
       </VBtn>
     </template>
     <template #append>
-      <VBtn>
+      <VBtn elevation="10" class="mr-5">
         <VIcon icon="mdi-phone" color="green" />
         <span class="hide-small">Anrufen</span>
       </VBtn>
-      <VBtn>
+      <VBtn elevation="10">
         <VIcon icon="mdi-cancel" color="red" />
         <span class="hide-mid">Fahrt abbrechen</span>
       </VBtn>

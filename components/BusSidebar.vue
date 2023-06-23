@@ -1,9 +1,9 @@
 <template>
   <VCardTitle> {{ vehicleState.operational?.line?.displayText }}</VCardTitle>
-  <VCardSubtitle>
+  <VCardSubtitle v-if="firstStop && vehicleState.destination?.lastStopName">
     {{ firstStop }}
     <VIcon icon="mdi-arrow-right" />
-    {{ vehicleState.destination?.lastStopName }}
+    {{ vehicleState.destination.lastStopName }}
   </VCardSubtitle>
   <VRow>
     <VCol>
