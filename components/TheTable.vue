@@ -2,7 +2,7 @@
   <VTextField
     v-model="search"
     class="searchbar"
-    label="Suche nach FahrzeugIDs..."
+    label="Suche nach Attributen..."
     prepend-inner-icon="mdi-magnify"
     single-line
     hide-details
@@ -146,13 +146,26 @@ const search = ref("");
 const filteredItems = computed(() => {
   if (items.value != null && search.value != null) {
     return items.value.filter((item) => {
-      if (item.vehicleId != null) {
-        return item.vehicleId
+      return (
+        item.driverName?.toLowerCase().includes(search.value.toLowerCase()) ||
+        item.line?.toLowerCase().includes(search.value.toLowerCase()) ||
+        item.predecessor?.identification.displayText
           .toLowerCase()
-          .includes(search.value.toLowerCase());
-      }
-      return false;
-      // how did we get here??
+          .includes(search.value.toLowerCase()) ||
+        item.successor?.identification.displayText
+          .toLowerCase()
+          .includes(search.value.toLowerCase()) ||
+        item.vehicleId?.toLowerCase().includes(search.value.toLowerCase()) ||
+        item.tenant?.toLowerCase().includes(search.value.toLowerCase()) ||
+        item.destination?.toLowerCase().includes(search.value.toLowerCase()) ||
+        item.identification?.uid
+          .toLowerCase()
+          .includes(search.value.toLowerCase()) ||
+        item.deviation?.value
+          ?.toString()
+          .toLowerCase()
+          .includes(search.value.toLowerCase())
+      );
     });
   }
 });
@@ -173,6 +186,6 @@ function formatDeviationValue(value: TableEntry) {
 
 <style scoped>
 .searchbar {
-  width: 25%;
+  width: 50%;
 }
 </style>
