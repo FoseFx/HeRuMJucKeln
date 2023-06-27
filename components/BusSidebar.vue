@@ -1,5 +1,14 @@
 <template>
-  <VCardTitle> {{ vehicleState.operational?.line?.displayText }}</VCardTitle>
+  <VCardTitle>
+    {{ vehicleState.operational?.line?.displayText }}
+    <NuxtLink
+      v-if="isOnTable"
+      class="icon-link"
+      :to="`/map/${vehicleState.identification.uid}`"
+    >
+      <VIcon>mdi-map</VIcon>
+    </NuxtLink>
+  </VCardTitle>
   <VCardSubtitle v-if="firstStop && vehicleState.destination?.lastStopName">
     {{ firstStop }}
     <VIcon icon="mdi-arrow-right" />
@@ -179,6 +188,8 @@ function openNextBus() {
     }`
   );
 }
+
+const isOnTable = computed(() => route.path.includes("table"));
 </script>
 
 <style lang="scss">

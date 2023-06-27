@@ -1,5 +1,5 @@
 <template>
-  <nav>
+  <nav class="icon-link">
     <NuxtLink to="/map" title="Karte anzeigen">
       <VIcon icon="mdi-map" />
     </NuxtLink>
@@ -50,16 +50,6 @@ i {
 a {
   padding: 0.75rem;
   text-decoration: none;
-}
-
-/*
-  Colors
-*/
-a {
-  color: black;
-}
-.dark a {
-  color: white;
 }
 
 .router-link-active {

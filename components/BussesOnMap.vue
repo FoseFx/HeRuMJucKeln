@@ -1,11 +1,26 @@
 <template>
   <MapboxSource :id="BUS_SOURCE_ID" :options="source"></MapboxSource>
   <MapboxLayer :id="BUS_LAYER_ID" :options="busLayer"></MapboxLayer>
+  <MapboxMarker
+    v-if="focusedBus"
+    :lng-lat="[
+      focusedBus.gpsPosition?.longitude,
+      focusedBus.gpsPosition?.latitude,
+    ]"
+  >
+    <div class="ring"></div>
+  </MapboxMarker>
 </template>
 
 <script setup lang="ts">
-import { MapboxLayer, MapboxSource } from "@studiometa/vue-mapbox-gl";
+import {
+  MapboxLayer,
+  MapboxMarker,
+  MapboxSource,
+} from "@studiometa/vue-mapbox-gl";
 import { GeoJSONSourceRaw, Layer, MapLayerMouseEvent } from "mapbox-gl";
+
+const route = useRoute();
 
 // Constants
 const BUS_LAYER_ID = "busses";
@@ -87,7 +102,6 @@ const busLayer: Layer = {
   layout: {},
   paint: {
     "circle-radius": 6,
-    // TODO: Change color for different busses. Or one layer for each color?
     "circle-color": ["get", "color"],
   },
 };
@@ -105,7 +119,10 @@ const source: ComputedRef<GeoJSONSourceRaw> = computed(
           type: "Feature",
           properties: {
             vehicleIndex: i,
-            color: getDeviationSemanticsColor(vehicle.deviation?.semantics),
+            color:
+              vehicle.identification.uid === busId.value
+                ? "purple"
+                : getDeviationSemanticsColor(vehicle.deviation?.semantics),
           },
           geometry: {
             type: "Point",
@@ -131,4 +148,40 @@ function vehicleForMapboxEvent(e: MapLayerMouseEvent) {
   }
   return vehicle;
 }
+
+const busId = computed(() => route.params.busId as string);
+
+const focusedBus = computed(
+  () =>
+    filteredVehicles.value.find((v) => v.identification.uid === busId.value) ??
+    null
+);
 </script>
+
+<style scoped>
+.ring {
+  position: relative;
+  border: purple solid 4px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+
+  animation: pulsate 1s ease-out;
+  animation-iteration-count: infinite;
+  opacity: 1;
+}
+
+@keyframes pulsate {
+  0% {
+    transform: scale(0.1, 0.1);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.2, 1.2);
+    opacity: 0;
+  }
+}
+</style>

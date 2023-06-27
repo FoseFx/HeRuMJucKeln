@@ -4,3 +4,13 @@
   --color-alert: #ff0000;
   --color-neutral: grey;
 }
+
+a.icon-link,
+.icon-link a {
+  color: black;
+}
+
+.dark a.icon-link,
+.dark .icon-link a {
+  color: white;
+}
