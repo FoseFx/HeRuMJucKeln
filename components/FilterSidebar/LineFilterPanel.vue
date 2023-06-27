@@ -1,10 +1,5 @@
 <template>
-  <FilterPanel
-    id="line"
-    title="Linien"
-    :active="filterState.isLinesFiltered.value"
-    @clear="resetLinesFilter()"
-  >
+  <FilterPanel id="line" title="Linien" :filter-state="lineFilterState">
     <div class="cb-wrapper">
       <VTextField
         v-model="search"
@@ -20,7 +15,7 @@
       <VCheckbox
         v-for="line of filteredLines"
         :key="line.id"
-        v-model="filterState.linesFilter.value"
+        v-model="lineFilterState.model.value"
         :label="line.name"
         :value="line.id"
         class="half-cb"
@@ -30,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-const filterState = useFilterSidebar();
+const lineFilterState = useLineFilterState();
 
 const { data: lines } = useLines();
 
@@ -43,10 +38,10 @@ const filteredLines = computed(() => {
   }
 });
 
-function resetLinesFilter() {
-  filterState.clearLinesFilter();
-  resetSearchBar();
-}
+// function resetLinesFilter() {
+//   lineFilterState.clear();
+//   resetSearchBar();
+// }
 
 function resetSearchBar() {
   search.value = "";

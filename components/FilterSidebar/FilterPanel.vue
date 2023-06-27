@@ -6,8 +6,8 @@
       <VBtn
         style="margin-right: 1rem"
         density="comfortable"
-        :disabled="!active"
-        @click.stop="$emit('clear')"
+        :disabled="!filterState.isFiltered.value"
+        @click.stop="filterState.clear"
       >
         Clear
       </VBtn>
@@ -19,10 +19,12 @@
 </template>
 
 <script setup lang="ts">
+import { Filter } from "~/composables/filter";
+
 defineProps<{
   id: string;
   title: string;
-  active: boolean;
+  filterState: Filter<unknown>;
 }>();
 
 defineEmits(["clear"]);

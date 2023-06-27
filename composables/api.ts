@@ -131,42 +131,73 @@ export function useVehicleStates$() {
   return vehicleStates as Ref<VehicleState[]>;
 }
 
+export function useTenants() {
+  const tenants = ref<string[]>([]);
+
+  (async () => {
+    const loadedTenants = await api.tenants.retrieveTenants();
+    tenants.value = loadedTenants;
+  })();
+
+  return tenants;
+}
+
 export function useFilteredVehicleState$() {
   return filterVehicles(useVehicleStates$());
 }
 
 function filterVehicles(allVehicles: Ref<VehicleState[]>) {
-  const filterState = useFilterSidebar();
+  const linesFilterState = useLineFilterState();
+  const geoFilterState = useGeoFilterState();
+  const timeFilterState = useTimeFilterState();
+  const statusFilterState = useStatusFilterState();
+  const tenantFilterState = useTenantFilterState();
+  const workingSetFilterState = useWorkingSetFilterState();
 
   return computed(() => {
     let result = allVehicles.value?.filter((v) => v.gpsPosition) ?? [];
 
-    if (filterState.isLinesFiltered.value) {
+    if (linesFilterState.isFiltered.value) {
       result = result.filter((v) =>
-        filterState.linesFilter.value.find(
-          (l) => v.operational?.line?.uid === l
-        )
+        linesFilterState.model.value.find((l) => v.operational?.line?.uid === l)
       );
     }
 
-    if (filterState.isGeoFiltered.value) {
+    if (geoFilterState.isFiltered.value) {
       result = result.filter((vehicle) => {
-        const { lngLat: filterLocation, radius } = filterState.geoFilter.value!;
+        const { lngLat: filterLocation, radius } = geoFilterState.model.value!;
         const vehicleLocation = lngLatOfVehicle(vehicle);
         if (!vehicleLocation) return false;
         return calcDist(filterLocation, vehicleLocation) <= radius;
       });
     }
 
-    if (filterState.isTimeFiltered.value) {
+    if (timeFilterState.isFiltered.value) {
       result = result.filter((vehicle) => {
-        const [lower, upper] = filterState.timeFilter.value!;
+        const [lower, upper] = timeFilterState.model.value!;
         const val = vehicle.deviation?.value;
         if (typeof val !== "number") return true;
         return lower <= val && val <= upper;
       });
     }
 
+    if (statusFilterState.model.value) {
+      result = result.filter(
+        (vehicle) => vehicle.registrationState !== "EXTERNAL"
+      );
+    }
+
+    if (tenantFilterState.isFiltered.value) {
+      result = result.filter((vehicle) =>
+        tenantFilterState.model.value.includes(vehicle.tenant)
+      );
+    }
+
+    if (workingSetFilterState.isFiltered.value) {
+      result = result.filter((vehicleState) =>
+        workingSetFilterState.model.value.includes(vehicleState.workingSet?.uid)
+      );
+    }
     return result;
   });
 }

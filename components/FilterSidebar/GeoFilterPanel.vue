@@ -1,10 +1,5 @@
 <template>
-  <FilterPanel
-    id="geolocation"
-    title="Ort"
-    :active="filterState.isGeoFiltered.value"
-    @clear="filterState.clearGeoFilter()"
-  >
+  <FilterPanel id="geolocation" title="Ort" :filter-state="geoFilterState">
     <div style="display: flex; flex-wrap: wrap; justify-content: center">
       <VTextField
         v-model="radius"
@@ -34,22 +29,40 @@
 <script setup lang="ts">
 defineProps<{ context: "map" | "table" }>();
 
-const filterState = useFilterSidebar();
+const geoFilterState = useGeoFilterState();
 
 const map = useMap();
 
-const radius = ref(filterState.geoFilter.value?.radius ?? 2); // local copy of radius, which can be 2-way bound to input
+const radius = ref(geoFilterState.model.value?.radius ?? 2); // local copy of radius, which can be 2-way bound to input
 
-const streetname = filterState.geoFilterStreetname;
+const streetname = geoFilterState.metadata?.value.streetname;
 
-watch(radius, (radius) => filterState.maybeSetRadius(radius), {
+function maybeSetRadius(radius: number) {
+  if (!geoFilterState.model.value) return;
+  geoFilterState.model.value = {
+    ...geoFilterState.model.value,
+    radius,
+  };
+}
+
+watch(radius, (radius) => maybeSetRadius(radius), {
   immediate: true,
 }); // keep in sync with state
+
+function setGeoFilter(
+  lngLat: mapboxgl.LngLat,
+  radius = geoFilterState.model.value?.radius ?? 2
+) {
+  geoFilterState.model.value = {
+    lngLat,
+    radius,
+  };
+}
 
 function onMapMarkerDropped() {
   // Right after dropping, we get a "mousemove" event from which we can obtain the coordinates
   map.value?.once("mousemove", ({ lngLat }: mapboxgl.MapMouseEvent) =>
-    filterState.setGeoFilter(lngLat, radius.value)
+    setGeoFilter(lngLat, radius.value)
   );
 }
 </script>

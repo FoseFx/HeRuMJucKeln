@@ -4,11 +4,11 @@
     <MapboxLayer :id="CIRCLE_LAYER_ID" :options="layer"></MapboxLayer>
     <MapboxLayer :id="CIRCLE_BORDER_LAYER_ID" :options="border"></MapboxLayer>
     <MapboxMarker
-      v-if="filter.isGeoFiltered"
+      v-if="geoFilterState.isFiltered"
       draggable
       :lng-lat="[
-        filter.geoFilter.value!.lngLat.lng,
-        filter.geoFilter.value!.lngLat.lat,
+        geoFilterState.model.value!.lngLat.lng,
+        geoFilterState.model.value!.lngLat.lat,
       ]"
       @mb-dragend="onDragend"
     />
@@ -28,16 +28,16 @@ const CIRCLE_SOURCE_ID = "circle-source";
 const CIRCLE_LAYER_ID = "circle-layer";
 const CIRCLE_BORDER_LAYER_ID = "circle-layer-border";
 
-const filter = useFilterSidebar();
+const geoFilterState = useGeoFilterState();
 
 const source = computed(() => {
-  if (!filter.isGeoFiltered.value) {
+  if (!geoFilterState.isFiltered.value) {
     return null;
   }
   const {
     lngLat: { lng, lat },
     radius,
-  } = filter.geoFilter.value!;
+  } = geoFilterState.model.value!;
   return createGeoJSONCircle([lng, lat], radius);
 });
 
@@ -64,6 +64,9 @@ const border = {
 };
 
 function onDragend(marker: { target: Marker }) {
-  filter.setGeoFilter(marker.target.getLngLat());
+  geoFilterState.model.value = {
+    lngLat: marker.target.getLngLat(),
+    radius: geoFilterState.model.value?.radius ?? 2,
+  };
 }
 </script>

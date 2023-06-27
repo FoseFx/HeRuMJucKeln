@@ -34,6 +34,9 @@
             <LineFilterPanel />
             <GeoFilterPanel :context="context" />
             <TimeFilterPanel />
+            <StatusFilterPanel />
+            <TenantFilterPanel />
+            <WorkingSetFilterPanel />
           </VExpansionPanels>
         </VContainer>
       </VCol>
@@ -45,13 +48,18 @@
 import LineFilterPanel from "./LineFilterPanel.vue";
 import GeoFilterPanel from "./GeoFilterPanel.vue";
 import TimeFilterPanel from "./TimeFilterPanel.vue";
+import StatusFilterPanel from "./StatusFilterPanel.vue";
+import TenantFilterPanel from "./TenantFilterPanel.vue";
+import WorkingSetFilterPanel from "./WorkingSetFilterPanel.vue";
 
 defineProps<{ context: "map" | "table" }>();
 const dark = useDark();
 
 const filterState = useFilterSidebar();
 
-const panel = ref(filterState.isLinesFiltered.value ? ["line"] : []);
+const lineFilterState = useLineFilterState();
+
+const panel = ref(lineFilterState.isFiltered.value ? ["line"] : []);
 </script>
 
 <style scoped>
