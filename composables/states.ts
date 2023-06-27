@@ -90,29 +90,47 @@ function useTimeFilterState() {
   const MIN = -5;
   const MAX = 20;
 
+  const isDefaultRange = useState("time-filter/is-default-range", () => true);
+
   const DEFAULT_RANGE: [number, number] = [MIN, MAX];
 
   const timeFilter = useState<[number, number]>(
-    "time-filter",
+    "time-filter/value",
     () => DEFAULT_RANGE
   );
+
+  const timeFilterRange = useState("time-filter/range", () => DEFAULT_RANGE);
+
   const isTimeFiltered = computed(
     () =>
       !(
-        timeFilter.value[0] === DEFAULT_RANGE[0] &&
-        timeFilter.value[1] === DEFAULT_RANGE[1]
+        timeFilter.value[0] === timeFilterRange.value[0] &&
+        timeFilter.value[1] === timeFilterRange.value[1]
       )
   );
 
   function clearTimeFilter() {
-    timeFilter.value = DEFAULT_RANGE;
+    console.log("Clear...", timeFilterRange.value);
+    timeFilter.value = timeFilterRange.value;
+  }
+
+  function setTimeFilterRange(range: [number, number], setValue = true) {
+    if (isDefaultRange.value) {
+      timeFilterRange.value = range;
+      if (setValue) {
+        timeFilter.value = range;
+        isDefaultRange.value = false;
+      }
+    }
   }
 
   return {
-    DEFAULT_RANGE,
     timeFilter,
+    timeFilterRange: readonly(timeFilterRange),
     isTimeFiltered,
     clearTimeFilter,
+    isDefaultRange: readonly(isDefaultRange),
+    setTimeFilterRange,
   };
 }
 
