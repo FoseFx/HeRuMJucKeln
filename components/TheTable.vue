@@ -155,7 +155,9 @@ const filteredItems = computed(() => {
         item.successor?.identification.displayText
           .toLowerCase()
           .includes(search.value.toLowerCase()) ||
-        item.vehicleId?.toLowerCase().includes(search.value.toLowerCase()) ||
+        item.identification?.displayText
+          .toLowerCase()
+          .includes(search.value.toLowerCase()) ||
         item.tenant?.toLowerCase().includes(search.value.toLowerCase()) ||
         item.destination?.toLowerCase().includes(search.value.toLowerCase()) ||
         item.identification?.uid
