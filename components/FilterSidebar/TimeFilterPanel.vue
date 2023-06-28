@@ -7,8 +7,8 @@
     <div ref="slider" style="padding-top: 2rem">
       <VRangeSlider
         v-model="timeFilterState.model.value"
-        :min="timeFilterState.model.value[0]"
-        :max="timeFilterState.model.value[1]"
+        :min="timeFilterState.metadata!.value.timeFilterRange[0]"
+        :max="timeFilterState.metadata!.value.timeFilterRange[1]"
         :step="1"
         thumb-label="always"
         strict
@@ -18,6 +18,8 @@
 </template>
 
 <script setup lang="ts">
+import _ from "lodash";
+
 const timeFilterState = useTimeFilterState();
 const slider = ref(null);
 const mouseDown = useMousePressed({ target: slider });
@@ -37,22 +39,10 @@ const range = computed<[number, number] | null>(() => {
   }
 });
 
-watch(range, (range) => {
+watch(range, (newRange) => {
   // Set range once as soon as vehicles have loaded
-  if (range !== null && timeFilterState.metadata?.value.isDefaultRange) {
-    timeFilterState.metadata?.value.setTimeFilterRange(
-      range,
-      !mouseDown.pressed
-    );
-  } else if (range !== null) {
-    const newRange = timeFilterState.model.value;
-    if (range[0] < timeFilterState.model.value[0]) {
-      newRange[0] = range[0];
-    }
-    if (range[1] > timeFilterState.model.value[1]) {
-      newRange[1] = range[1];
-    }
-    timeFilterState.metadata?.value.setTimeFilterRange(
+  if (newRange !== null && !_.isEqual(range, newRange)) {
+    timeFilterState.metadata!.value.setTimeFilterRange(
       newRange,
       !mouseDown.pressed
     );

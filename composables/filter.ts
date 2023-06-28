@@ -1,3 +1,5 @@
+import _ from "lodash";
+
 export interface Filter<T, M = unknown> {
   clear: () => void;
   isFiltered: ComputedRef<boolean>;
@@ -68,7 +70,6 @@ export function useTimeFilterState(): Filter<
   {
     timeFilterRange: readonly [number, number];
     setTimeFilterRange: (range: [number, number], setValue?: boolean) => void;
-    isDefaultRange: boolean;
   }
 > {
   const timeFilter = useState<[number, number]>(
@@ -76,8 +77,6 @@ export function useTimeFilterState(): Filter<
     () => DEFAULT_RANGE
   );
   const timeFilterRange = useState("time-filter/range", () => DEFAULT_RANGE);
-
-  const isDefaultRange = useState("time-filter/is-default-range", () => true);
 
   const isTimeFiltered = computed(
     () =>
@@ -92,11 +91,16 @@ export function useTimeFilterState(): Filter<
   }
 
   function setTimeFilterRange(range: [number, number], setValue = true) {
-    if (isDefaultRange.value) {
-      timeFilterRange.value = range;
+    if (
+      _.isEqual(timeFilterRange.value, DEFAULT_RANGE) ||
+      (isTimeFiltered.value && setValue)
+    ) {
+      const newRange = timeFilterRange.value;
+      newRange[0] = Math.min(newRange[0], range[0]);
+      newRange[1] = Math.max(newRange[1], range[1]);
+      timeFilterRange.value = newRange;
       if (setValue) {
-        timeFilter.value = range;
-        isDefaultRange.value = false;
+        timeFilter.value = newRange;
       }
     }
   }
@@ -108,7 +112,6 @@ export function useTimeFilterState(): Filter<
     metadata: computed(() => ({
       timeFilterRange: readonly(timeFilterRange.value),
       setTimeFilterRange,
-      isDefaultRange: isDefaultRange.value,
     })),
   };
 }
@@ -166,6 +169,8 @@ export function useFilterSidebar(initialState = true) {
   const geoFilterState = useGeoFilterState();
   const timeFilterState = useTimeFilterState();
   const statusFilterState = useStatusFilterState();
+  const tenantFilterState = useTenantFilterState();
+  const workingSetFilterState = useWorkingSetFilterState();
 
   // Computed
 
@@ -174,7 +179,9 @@ export function useFilterSidebar(initialState = true) {
       lineFilterState.isFiltered.value ||
       geoFilterState.isFiltered.value ||
       timeFilterState.isFiltered.value ||
-      statusFilterState.isFiltered.value
+      statusFilterState.isFiltered.value ||
+      tenantFilterState.isFiltered.value ||
+      workingSetFilterState.isFiltered.value
   );
 
   function openIfFiltered() {
@@ -188,6 +195,8 @@ export function useFilterSidebar(initialState = true) {
     geoFilterState.clear();
     timeFilterState.clear();
     statusFilterState.clear();
+    tenantFilterState.clear();
+    workingSetFilterState.clear();
   };
 
   return {
