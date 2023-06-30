@@ -1,6 +1,6 @@
 <template>
   <VCardTitle>
-    {{ vehicleState.operational?.line?.displayText }}
+    {{ vehicleState.identification.displayText }}
     <NuxtLink
       v-if="isOnTable"
       class="icon-link"
@@ -23,12 +23,28 @@
             <td>{{ vehicleState.operational?.driver?.displayText }}</td>
           </tr>
           <tr>
-            <td>Fahrzeug</td>
-            <td>{{ vehicleState.identification.displayText }}</td>
+            <td>Linie</td>
+            {{
+              vehicleState.operational?.line?.displayText
+            }}
+            <VBtn icon dense small @click="toggleLineFilter">
+              <VIcon
+                small
+                :icon="isLinesFiltered ? 'mdi-filter-off' : 'mdi-filter'"
+              />
+            </VBtn>
           </tr>
           <tr>
             <td>Dienstleister</td>
-            <td>{{ vehicleState.tenant }}</td>
+            <td>
+              {{ vehicleState.tenant }}
+              <VBtn icon dense small @click="toggleTenantFilter">
+                <VIcon
+                  small
+                  :icon="isTenantFiltered ? 'mdi-filter-off' : 'mdi-filter'"
+                />
+              </VBtn>
+            </td>
           </tr>
           <tr v-if="vehicleState.occupancy?.range">
             <td>Auslastung</td>
@@ -101,6 +117,7 @@
 
 <script setup lang="ts">
 import date from "date-and-time";
+import _ from "lodash";
 import { NetPoint, VehicleState } from "~/swagger/Api";
 
 const router = useRouter();
@@ -190,6 +207,38 @@ function openNextBus() {
 }
 
 const isOnTable = computed(() => route.path.includes("table"));
+
+const tenantFilterState = useTenantFilterState();
+
+const isTenantFiltered = computed(() =>
+  _.isEqual(tenantFilterState.model.value, [props.vehicleState.tenant])
+);
+
+function toggleTenantFilter() {
+  if (isTenantFiltered.value) {
+    tenantFilterState.clear();
+  } else {
+    tenantFilterState.model.value = [props.vehicleState.tenant];
+  }
+}
+
+const lineFilterState = useLineFilterState();
+
+const isLinesFiltered = computed(() =>
+  _.isEqual(lineFilterState.model.value, [
+    props.vehicleState.operational?.line?.uid ?? "",
+  ])
+);
+
+function toggleLineFilter() {
+  if (isLinesFiltered.value) {
+    lineFilterState.clear();
+  } else {
+    lineFilterState.model.value = [
+      props.vehicleState.operational?.line?.uid ?? "",
+    ];
+  }
+}
 </script>
 
 <style lang="scss">
