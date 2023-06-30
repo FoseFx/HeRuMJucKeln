@@ -15,26 +15,36 @@
             ></VSelect>
             <VSelect
               v-model="metrik"
-              :items="['Durchschnittliche Zeit', 'Fahrten']"
+              :items="[
+                'Durchschnittliche Abweichung',
+                'Fahrten',
+                'Anteil der Fahrten unter Zeitfilter',
+              ]"
               label="Metrik"
             ></VSelect>
+            <VSelect
+              v-model="typeChart"
+              :items="['Bar Chart', 'Pie Chart']"
+              label="Charttyp"
+            >
+            </VSelect>
             <VCardText>Filter</VCardText>
             <VRow>
               <VCol cols="7">
                 <VSelect
-                  v-model="linienFilter"
-                  :items="linien"
-                  label="Linien"
+                  v-model="linesFilter"
                   multiple
+                  :items="filteredLines"
+                  label="Linien"
                 ></VSelect>
               </VCol>
               <VCol>
-                <VBtn class="select" @click="linienFilter = linien"
+                <VBtn class="select" @click="linesFilter = filteredLines"
                   >Alle<br />auswählen</VBtn
                 >
               </VCol>
               <VCol>
-                <VBtn class="select" @click="linienFilter = []"
+                <VBtn class="select" @click="linesFilter = []"
                   >Zurück-<br />setzen</VBtn
                 >
               </VCol>
@@ -42,19 +52,25 @@
             <VRow>
               <VCol cols="7">
                 <VSelect
-                  v-model="diensleisterFilter"
-                  :items="unternehmen"
+                  v-model="tenantsFilter"
+                  :items="tenantsList"
                   label="Dienstleister"
                   multiple
                 ></VSelect>
               </VCol>
               <VCol>
-                <VBtn class="select" @click="diensleisterFilter = unternehmen"
+                <VBtn
+                  class="select"
+                  @click="
+                    tenantsList
+                      ? (tenantsFilter = tenantsList)
+                      : (tenantsList = [])
+                  "
                   >Alle<br />auswählen</VBtn
                 >
               </VCol>
               <VCol>
-                <VBtn class="select" @click="diensleisterFilter = []"
+                <VBtn class="select" @click="tenantsFilter = []"
                   >Zurück-<br />setzen</VBtn
                 >
               </VCol>
@@ -88,20 +104,45 @@
 
 <script setup lang="ts">
 import { watch } from "vue";
-const linien = useAlleLinien();
-const unternehmen = useAlleUnternehmen();
-
+import { UsePromiseResult, usePromise } from "vue-promised";
+const typeChart = ref("");
 const showModal = ref(false);
 const chartFilter = useFilter();
 const nameTitel = ref("");
 const zeitab = ref("");
 const zeitbis = ref("");
 const errorMessage = ref("");
-const linienFilter = ref<number[]>([]);
-const diensleisterFilter = ref<string[]>([]);
 const metrik = ref("");
 const schluessel = ref("");
+const linesFilter = ref<string[]>([]);
+const { data: lines } = useLines();
+const filteredLines = computed(() => {
+  if (lines.value != null) {
+    return lines.value.map((line) => {
+      return line.name;
+    });
+  } else {
+    return [];
+  }
+});
+let ten: UsePromiseResult<string[]> | null = null;
+function useTenants() {
+  if (ten === null || !ten.isRejected) {
+    const promiseRef = ref(api.tenants.retrieveTenants());
+    ten = usePromise(promiseRef);
+  }
 
+  return { ...ten };
+}
+const { data: tenants } = useTenants();
+const tenantsFilter = ref<string[]>([]);
+const tenantsList = computed(() => {
+  if (tenants.value != null) {
+    return tenants.value.filter((tenant) => {
+      return tenant;
+    });
+  }
+});
 const addFilter = () => {
   if (nameTitel.value === "") {
     errorMessage.value = "Gib einen Titel ein";
@@ -115,11 +156,11 @@ const addFilter = () => {
     errorMessage.value = "Wähle eine Metrik";
     return;
   }
-  if (linienFilter.value.length === 0) {
-    linienFilter.value = linien.value;
+  if (linesFilter.value.length === 0) {
+    linesFilter.value = filteredLines.value;
   }
-  if (diensleisterFilter.value.length === 0) {
-    diensleisterFilter.value = unternehmen.value;
+  if (tenantsFilter.value.length === 0) {
+    tenantsFilter.value = tenantsList.value ? tenantsList.value : [];
   }
   if (schluessel.value === "Zustand") {
     zeitab.value = "-3000";
@@ -129,43 +170,33 @@ const addFilter = () => {
     zeitab.value = "-3000";
     zeitbis.value = "6000";
   }
-
-  if (JSON.stringify(linienFilter.value) === JSON.stringify([])) {
-    linienFilter.value = linien.value;
-  }
-  if (JSON.stringify(diensleisterFilter.value) === JSON.stringify([])) {
-    diensleisterFilter.value = unternehmen.value;
-  }
   chartFilter.value.push({
     id: Math.random(),
     name: nameTitel.value,
     schluessel: schluessel.value,
     metrik: metrik.value,
     filterZeit: [Number(zeitab.value), Number(zeitbis.value)],
-    filterLinie: linienFilter.value,
-    filterUnternehmen: diensleisterFilter.value,
+    filterLinie: linesFilter.value,
+    filterUnternehmen: tenantsFilter.value,
   });
 
   showModal.value = false;
   nameTitel.value = "";
   zeitab.value = "";
   zeitbis.value = "";
-  linienFilter.value = [];
-  diensleisterFilter.value = [];
+  linesFilter.value = [];
+  tenantsFilter.value = [];
   schluessel.value = "";
   metrik.value = "";
 };
-
 const sortLinien = () => {
-  linienFilter.value.sort((n1, n2) => n1 - n2);
+  linesFilter.value.sort();
 };
-
 const sortUnternehmen = () => {
-  diensleisterFilter.value.sort();
+  tenantsFilter.value.sort();
 };
-
-watch(linienFilter, sortLinien, { immediate: false });
-watch(diensleisterFilter, sortUnternehmen, { immediate: false });
+watch(linesFilter, sortLinien, { immediate: false });
+watch(tenantsFilter, sortUnternehmen, { immediate: false });
 </script>
 
 <style scoped>

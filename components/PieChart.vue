@@ -1,10 +1,10 @@
 <template>
   <Pie
-    v-if="chartOptions && chartData"
-    :key="chartOptions.plugins.legend.labels.color"
+    v-if="chartOptions && chartData && loaded"
     :options="chartOptions"
     :data="chartData"
-  />
+  >
+  </Pie>
 </template>
 
 <script setup lang="ts">
@@ -18,62 +18,17 @@ import {
   Title,
   Colors,
 } from "chart.js";
-
+const loaded = ref(false);
 ChartJS.register(Title, Tooltip, Legend, PieController, ArcElement, Colors);
 const props = defineProps<{
   dataParent: number[];
   labelsParent: String[];
   filterParent: string;
-  textcolor: string;
 }>();
-
-const textcolor = toRef(props, "textcolor");
-const dataChart = toRef(props, "dataParent");
-const labels = toRef(props, "labelsParent");
-const filter = toRef(props, "filterParent");
 const dark = useDark();
-const chartData = ref<{
-  labels: String[];
-  datasets:
-    | { data: number[] }[]
-    | { data: number[]; backgroundColor: string[] }[];
-} | null>(null);
 
-const chartOptions = ref<{
-  responsive: boolean;
-  plugins:
-    | {
-        colors: { enabled: boolean };
-        legend: {
-          labels: {
-            boxWidth: number;
-            color: string;
-            font: { size: number };
-          };
-        };
-      }
-    | {
-        colors: { enabled: boolean };
-        legend: {
-          labels: {
-            boxWidth: number;
-            color: string;
-            font: { size: number };
-          };
-        };
-      };
-} | null>(null);
-
-if (filter.value !== "Zustand") {
-  chartData.value = {
-    labels: labels.value,
-    datasets: [
-      {
-        data: dataChart.value,
-      },
-    ],
-  };
-  chartOptions.value = {
+const chartOptions = computed(() => {
+  const chartOptionsNew = {
     responsive: true,
     plugins: {
       colors: {
@@ -81,8 +36,8 @@ if (filter.value !== "Zustand") {
       },
       legend: {
         labels: {
+          color: dark.value ? "#FFF" : "#000",
           boxWidth: 20,
-          color: textcolor.value,
           font: {
             size: 17,
           },
@@ -90,42 +45,36 @@ if (filter.value !== "Zustand") {
       },
     },
   };
-} else {
-  chartData.value = {
-    labels: labels.value,
-    datasets: [
-      {
-        data: dataChart.value,
-        backgroundColor: ["#F44336", "#66BB6A", "#FFA726"],
-      },
-    ],
-  };
-  chartOptions.value = {
-    responsive: true,
-    plugins: {
-      colors: {
-        enabled: false,
-      },
-      legend: {
-        labels: {
-          boxWidth: 20,
-          color: textcolor.value,
-          font: {
-            size: 17,
-          },
-        },
-      },
-    },
-  };
-}
-const updateLegendColor = () => {
-  const legendColor = dark.value ? "#FFF" : "#000";
-  if (chartOptions.value !== null) {
-    const oldChartOptions = chartOptions.value;
-    oldChartOptions.plugins.legend.labels.color = legendColor;
-    chartOptions.value = oldChartOptions;
-  }
-};
+  return chartOptionsNew;
+});
 
-watch(dark, updateLegendColor, { immediate: true });
+const chartData = computed(() => {
+  if (props.filterParent === "Zustand") {
+    const chartDataNew = {
+      labels: props.labelsParent,
+      datasets: [
+        {
+          backgroundColor: ["green", "#D18700", "red", "grey"],
+          data: props.dataParent,
+        },
+      ],
+    };
+    return chartDataNew;
+  } else {
+    const chartDataNew = {
+      labels: props.labelsParent,
+      datasets: [
+        {
+          data: props.dataParent,
+        },
+      ],
+    };
+    return chartDataNew;
+  }
+});
+
+onMounted(() => {
+  while (!props.dataParent && !props.labelsParent); // <div>
+  loaded.value = true;
+});
 </script>

@@ -4,6 +4,6 @@ export interface DashboardConfig {
   schluessel: string;
   metrik: string;
   filterZeit: number[];
-  filterLinie: number[];
+  filterLinie: string[];
   filterUnternehmen: string[];
 }
