@@ -24,26 +24,42 @@
           </tr>
           <tr>
             <td>Linie</td>
-            {{
-              vehicleState.operational?.line?.displayText
-            }}
-            <VBtn icon dense small @click="toggleLineFilter">
-              <VIcon
-                small
-                :icon="isLinesFiltered ? 'mdi-filter-off' : 'mdi-filter'"
-              />
-            </VBtn>
+            <td class="filter-icon">
+              {{ vehicleState.operational?.line?.displayText }}
+              <VTooltip location="bottom">
+                <template #activator="{ on }">
+                  <VBtn
+                    dense
+                    size="small"
+                    variant="plain"
+                    :icon="isLinesFiltered ? 'mdi-filter-off' : 'mdi-filter'"
+                    v-on="on"
+                    @click="toggleLineFilter"
+                  ></VBtn>
+                </template>
+                <span>Tooltip</span>
+              </VTooltip>
+            </td>
           </tr>
           <tr>
             <td>Dienstleister</td>
-            <td>
+            <td class="filter-icon">
               {{ vehicleState.tenant }}
-              <VBtn icon dense small @click="toggleTenantFilter">
-                <VIcon
-                  small
-                  :icon="isTenantFiltered ? 'mdi-filter-off' : 'mdi-filter'"
-                />
-              </VBtn>
+              <VTooltip bottom>
+                <template #activator="{ on, attrs }">
+                  <VBtn
+                    dense
+                    size="small"
+                    variant="plain"
+                    :icon="isTenantFiltered ? 'mdi-filter-off' : 'mdi-filter'"
+                    v-on="on"
+                    v-bind="attrs"
+                    @click="toggleTenantFilter"
+                  >
+                  </VBtn>
+                </template>
+                <span>Tooltip2</span>
+              </VTooltip>
             </td>
           </tr>
           <tr v-if="vehicleState.occupancy?.range">
@@ -315,5 +331,15 @@ function toggleLineFilter() {
     transform: scale(1.2, 1.2);
     opacity: 0;
   }
+}
+.filter-icon {
+  white-space: nowrap;
+  padding-right: 0px !important;
+}
+.cb_table-hover tbody tr .filter-icon {
+  visibility: hidden;
+}
+.cb_table-hover tbody tr:hover .filter-icon {
+  visibility: visible;
 }
 </style>
