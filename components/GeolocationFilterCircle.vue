@@ -1,18 +1,21 @@
 <template>
-  <template v-if="source">
-    <MapboxSource :id="CIRCLE_SOURCE_ID" :options="source"></MapboxSource>
-    <MapboxLayer :id="CIRCLE_LAYER_ID" :options="layer"></MapboxLayer>
-    <MapboxLayer :id="CIRCLE_BORDER_LAYER_ID" :options="border"></MapboxLayer>
-    <MapboxMarker
-      v-if="geoFilterState.isFiltered"
-      draggable
-      :lng-lat="[
-        geoFilterState.model.value!.lngLat.lng,
-        geoFilterState.model.value!.lngLat.lat,
-      ]"
-      @mb-dragend="onDragend"
-    />
-  </template>
+  <MapboxSource :id="CIRCLE_SOURCE_ID" :options="source"></MapboxSource>
+  <MapboxLayer :id="CIRCLE_LAYER_ID" :options="LAYER"></MapboxLayer>
+  <MapboxLayer :id="CIRCLE_BORDER_LAYER_ID" :options="border"></MapboxLayer>
+  <!--
+    FIXME: the following mapbox marker is rendered conditionally,
+           read the comment in Map.vue to see why this is bad
+           It's ok for now, as we pretty much always want the marker on top
+  -->
+  <MapboxMarker
+    v-if="geoFilterState.isFiltered && geoFilterState.model.value"
+    draggable
+    :lng-lat="[
+      geoFilterState.model.value.lngLat.lng,
+      geoFilterState.model.value.lngLat.lat,
+    ]"
+    @mb-dragend="onDragend"
+  />
 </template>
 
 <script setup lang="ts">
@@ -24,24 +27,22 @@ import {
 import { Marker } from "mapbox-gl";
 import { createGeoJSONCircle } from "~/utils/map";
 
+//
+// Constants
+//
 const CIRCLE_SOURCE_ID = "circle-source";
 const CIRCLE_LAYER_ID = "circle-layer";
 const CIRCLE_BORDER_LAYER_ID = "circle-layer-border";
 
-const geoFilterState = useGeoFilterState();
+const EMPTY_SOURCE = {
+  type: "geojson",
+  data: {
+    type: "FeatureCollection",
+    features: [],
+  },
+};
 
-const source = computed(() => {
-  if (!geoFilterState.isFiltered.value) {
-    return null;
-  }
-  const {
-    lngLat: { lng, lat },
-    radius,
-  } = geoFilterState.model.value!;
-  return createGeoJSONCircle([lng, lat], radius);
-});
-
-const layer = {
+const LAYER = {
   id: CIRCLE_LAYER_ID,
   type: "fill",
   source: CIRCLE_SOURCE_ID,
@@ -51,6 +52,19 @@ const layer = {
     "fill-opacity": 0.2,
   },
 };
+
+const geoFilterState = useGeoFilterState();
+
+const source = computed(() => {
+  if (!geoFilterState.isFiltered.value || !geoFilterState.model.value) {
+    return EMPTY_SOURCE;
+  }
+  const {
+    lngLat: { lng, lat },
+    radius,
+  } = geoFilterState.model.value;
+  return createGeoJSONCircle([lng, lat], radius);
+});
 
 const border = {
   id: CIRCLE_BORDER_LAYER_ID,

@@ -14,3 +14,7 @@ a.icon-link,
 .dark .icon-link a {
   color: white;
 }
+
+.hidden {
+  display: none;
+}
