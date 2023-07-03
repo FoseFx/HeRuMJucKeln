@@ -86,3 +86,14 @@ export const prettifyOccupancy = (occupany?: Occupancy) => {
     return `${occupany.range[0]}% - ${occupany.range[1]}%`;
   }
 };
+
+export function formatDeviation(deviation: Deviation | undefined) {
+  if (
+    typeof deviation?.value === "undefined" ||
+    typeof deviation?.prefix === "undefined"
+  ) {
+    return undefined;
+  }
+
+  return `${deviation.prefix}${Math.abs(deviation.value)} min`;
+}

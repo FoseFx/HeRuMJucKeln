@@ -131,6 +131,49 @@ export function useVehicleStates$() {
   return vehicleStates as Ref<VehicleState[]>;
 }
 
+const weUseMinusForDelay = ref(false); // assume false, because those that don't are mentally unstable
+export const useWeUseMinusForDelay = () => readonly(weUseMinusForDelay);
+
+// check if a positive deviation results in a '+' or '-' prefix
+// keep in mind it may be something else ('#' <=> '++', '=' <=> '--', '*' for idle)
+// FIXIME: we only do this once, which means there might be a bug, when the initial vehicle state set if free of deviations
+
+watchAtMost(
+  useVehicleStates$,
+  (vehicleStates) => {
+    if (!vehicleStates.value || vehicleStates.value.length === 0) {
+      return;
+    }
+    for (const state of vehicleStates.value) {
+      // have a look at deviated vehicles
+      // usually the first one should be enough
+      if (!state.deviation?.value) {
+        continue;
+      }
+
+      const { value, prefix } = state.deviation;
+
+      const isLate = value > 0;
+      const isEarly = value < 0;
+
+      const plusPrefix = prefix === "+" || prefix === "#";
+      const minusPrefix = prefix === "-" || prefix === "=";
+
+      const sane = (isLate && plusPrefix) || (isEarly && minusPrefix);
+      const insane = (isLate && minusPrefix) || (isEarly && plusPrefix);
+
+      if (sane || insane) {
+        // we have an answer
+        weUseMinusForDelay.value = insane;
+        return;
+      }
+
+      // deviation of 0 or weird prefix, try next vehicle
+    }
+  },
+  { count: 2 }
+);
+
 export function useTenants() {
   const tenants = ref<string[]>([]);
 

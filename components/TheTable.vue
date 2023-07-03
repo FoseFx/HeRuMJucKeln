@@ -36,7 +36,7 @@
           color: getDeviationSemanticsColor(value.deviation.semantics),
         }"
       >
-        {{ formatDeviationValue(value) }}
+        {{ formatDeviation(value.deviation) }}
       </div>
     </template>
     <template
@@ -173,16 +173,6 @@ const filteredItems = computed(() => {
 });
 function resetSearchBar() {
   search.value = "";
-}
-
-function formatDeviationValue(value: TableEntry) {
-  if (
-    value != null &&
-    value.deviation != null &&
-    value.deviation.value != null
-  ) {
-    return value.deviation.value + " min";
-  }
 }
 </script>
 
