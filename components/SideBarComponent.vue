@@ -1,11 +1,11 @@
 <template>
-  <VCard v-if="vehicle" class="sidebar">
+  <VCard class="sidebar">
     <template #prepend>
       <VBtn icon @click="$emit('close')">
         <VIcon icon="mdi-close" />
       </VBtn>
     </template>
-    <template #append>
+    <template v-if="vehicle" #append>
       <VBtn elevation="10" class="mr-5">
         <VIcon icon="mdi-phone" color="green" />
         <span class="hide-small">Anrufen</span>
@@ -15,28 +15,29 @@
         <span class="hide-mid">Fahrt abbrechen</span>
       </VBtn>
     </template>
-    <BusSidebar :vehicle-state="vehicle" />
-  </VCard>
-  <VCard v-else>
-    <div class="text-center">
-      <VProgressCircular :size="100" indeterminate />
+    <BusSidebar v-if="vehicle" :vehicle-state="vehicle" />
+    <div v-else class="text-center">
+      <VProgressCircular v-if="!notFound" :size="100" indeterminate />
+      <VAlert v-else icon="none" type="error" title="Fahrzeug nicht gefunden"
+        >Es wurde kein Fahrzeug mit der ID {{ id }} gefunden.
+      </VAlert>
     </div>
   </VCard>
 </template>
 
 <script lang="ts" setup>
-import { VehicleState } from "~/swagger/Api";
-
 defineEmits(["close"]);
-const props = defineProps<{ id: string; vehicleState?: VehicleState }>();
+const props = defineProps<{ id: string }>();
 
-const vehicles = computed(() =>
-  props.vehicleState
-    ? ref([props.vehicleState])
-    : useVehicleStates(undefined, [props.id])
+const allVehicles = refThrottled(useVehicleStates$(), 60_000);
+
+const vehicle = computedWithControl(allVehicles, () =>
+  allVehicles.value.find((v) => v.identification.uid === props.id)
 );
 
-const vehicle = computed(() => vehicles.value.value[0]);
+watch(() => props.id, vehicle.trigger);
+
+const notFound = computed(() => !vehicle.value && allVehicles.value.length > 0);
 </script>
 
 <style scoped>
