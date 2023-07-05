@@ -28,7 +28,7 @@
     <VCol v-if="isFilterSidebarOpen" :cols="3" style="height: 100%">
       <FilterSidebar context="map" />
     </VCol>
-    <VCol v-if="sidebarOpen" :cols="5" style="height: 100%">
+    <VCol v-if="sidebarBusParam" :cols="5" style="height: 100%">
       <SidebarPageRouterWrapper />
     </VCol>
   </VRow>
@@ -78,22 +78,30 @@ const router = useRouter();
 
 const mapRoutePath = route.matched[0].path;
 
-const sidebarOpen = computed(() => route.params.busId);
+const sidebarBusParam = computed(() => route.params.busId);
+
+const clickedVehicleId = ref<string | undefined>(undefined);
 
 watch(
-  sidebarOpen,
+  sidebarBusParam,
   (v) => {
-    v && closeFilterSidebar();
+    if (v) {
+      closeFilterSidebar();
+      if (typeof v === "string") {
+        clickedVehicleId.value = v;
+      } else {
+        clickedVehicleId.value = v[0];
+      }
+    } else {
+      clickedVehicleId.value = undefined;
+    }
   },
   {
     immediate: true,
   }
 );
 
-const clickedVehicle = ref<VehicleState | undefined>(undefined);
-
 function onBusClick(vehicle: VehicleState) {
-  clickedVehicle.value = vehicle;
   const path = mapRoutePath + `/${vehicle.identification.uid}`;
   router.push(path);
 }
@@ -101,7 +109,7 @@ function onBusClick(vehicle: VehicleState) {
 const lineVehicleId = computed(() =>
   popupInformation.value
     ? popupInformation.value.vehicleState.identification.uid
-    : clickedVehicle.value?.identification?.uid
+    : clickedVehicleId.value
 );
 </script>
 
