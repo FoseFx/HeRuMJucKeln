@@ -16,6 +16,11 @@
   </VCardSubtitle>
   <VRow>
     <VCol>
+      <SidebarSummary :vehicle-state="vehicleState" />
+    </VCol>
+  </VRow>
+  <VRow>
+    <VCol>
       <VTable>
         <tbody>
           <tr v-if="vehicleState.operational?.driver">
