@@ -4,7 +4,14 @@
       <TheTable />
       <FilterSidebarBtn v-if="!isFilterSidebarOpen" :state="filterSidebar" />
     </VCol>
-    <VCol v-if="isFilterSidebarOpen" :cols="3" class="sidebar">
+    <VCol
+      v-if="isFilterSidebarOpen"
+      :cols="9"
+      :sm="6"
+      :md="5"
+      :lg="3"
+      class="sidebar"
+    >
       <FilterSidebar context="table" />
     </VCol>
     <VCol v-if="sidebarOpen" :cols="5" class="sidebar">

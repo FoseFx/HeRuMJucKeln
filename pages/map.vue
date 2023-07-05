@@ -25,7 +25,14 @@
       </RawMap>
       <FilterSidebarBtn v-if="!isFilterSidebarOpen" :state="filterSidebar" />
     </VCol>
-    <VCol v-if="isFilterSidebarOpen" :cols="3" style="height: 100%">
+    <VCol
+      v-if="isFilterSidebarOpen"
+      :cols="9"
+      :sm="6"
+      :md="5"
+      :lg="3"
+      style="height: 100%"
+    >
       <FilterSidebar context="map" />
     </VCol>
     <VCol v-if="sidebarBusParam" :cols="5" style="height: 100%">
