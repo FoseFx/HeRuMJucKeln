@@ -19,6 +19,7 @@ import {
   MapboxSource,
 } from "@studiometa/vue-mapbox-gl";
 import { GeoJSONSourceRaw, Layer, MapLayerMouseEvent } from "mapbox-gl";
+import { VehicleState } from "~/swagger/Api";
 
 const route = useRoute();
 
@@ -101,12 +102,48 @@ const busLayer: Layer = {
   source: BUS_SOURCE_ID, // reference the data source
   layout: {},
   paint: {
-    "circle-radius": 6,
+    "circle-radius": ["get", "radius"],
     "circle-color": ["get", "color"],
+    "circle-opacity": ["get", "opacity"],
+    "circle-stroke-color": ["get", "circleStrokeColor"],
+    "circle-stroke-width": ["get", "circleStrokeWidth"],
   },
 };
 
 const filteredVehicles = useFilteredVehicleState$();
+
+const dark = useDark();
+
+function getVehicleStyle(vehicle: VehicleState) {
+  const complementaryColor = dark.value ? "white" : "black";
+  const style: {
+    color?: string;
+    opacity: number;
+    radius: number;
+    circleStrokeColor?: string;
+    circleStrokeWidth?: number;
+  } = {
+    color:
+      vehicle.identification.uid === busId.value
+        ? "purple"
+        : getDeviationSemanticsColor(vehicle.deviation?.semantics) ??
+          complementaryColor,
+    opacity: 1,
+    radius: 6,
+  };
+  if (busId.value) {
+    if (
+      vehicle.operational?.line?.uid !==
+      focusedBus.value?.operational?.line?.uid
+    ) {
+      style.opacity = 0.6;
+    } else {
+      style.circleStrokeColor = complementaryColor;
+      style.circleStrokeWidth = 2;
+    }
+  }
+  return style;
+}
 
 // Transform API-Data to source for map
 const source: ComputedRef<GeoJSONSourceRaw> = computed(
@@ -119,10 +156,7 @@ const source: ComputedRef<GeoJSONSourceRaw> = computed(
           type: "Feature",
           properties: {
             vehicleIndex: i,
-            color:
-              vehicle.identification.uid === busId.value
-                ? "purple"
-                : getDeviationSemanticsColor(vehicle.deviation?.semantics),
+            ...getVehicleStyle(vehicle),
           },
           geometry: {
             type: "Point",
@@ -149,7 +183,7 @@ function vehicleForMapboxEvent(e: MapLayerMouseEvent) {
   return vehicle;
 }
 
-const busId = computed(() => route.params.busId as string);
+const busId = computed(() => route.params.busId as string | undefined);
 
 const focusedBus = computed(
   () =>
