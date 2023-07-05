@@ -21,9 +21,12 @@
           </VBtn>
         </template>
       </VTextField>
-      <template v-if="geoFilterState.isFiltered.value || context === 'map'">
+      <div
+        v-if="geoFilterState.isFiltered.value || context === 'map'"
+        style="width: 100%; text-align: center"
+      >
         {{ streetname }}
-      </template>
+      </div>
     </div>
   </FilterPanel>
 </template>
