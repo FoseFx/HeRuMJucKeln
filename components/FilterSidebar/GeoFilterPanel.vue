@@ -21,7 +21,9 @@
           </VBtn>
         </template>
       </VTextField>
-      {{ streetname }}
+      <template v-if="geoFilterState.isFiltered.value || context === 'map'">
+        {{ streetname }}
+      </template>
     </div>
   </FilterPanel>
 </template>
@@ -35,7 +37,7 @@ const map = useMap();
 
 const radius = ref(geoFilterState.model.value?.radius ?? 2); // local copy of radius, which can be 2-way bound to input
 
-const streetname = geoFilterState.metadata?.value.streetname;
+const streetname = computed(() => geoFilterState.metadata.value.streetname);
 
 function maybeSetRadius(radius: number) {
   if (!geoFilterState.model.value) return;

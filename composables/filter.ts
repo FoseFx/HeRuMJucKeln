@@ -1,13 +1,18 @@
 import _ from "lodash";
 
-export interface Filter<T, M = unknown> {
+export interface BaseFilter<T> {
   clear: () => void;
   isFiltered: ComputedRef<boolean>;
   model: Ref<T>;
-  metadata?: Ref<M>;
 }
 
-export function useLineFilterState(): Filter<string[], { streetname: string }> {
+export interface FilterWithMetadata<T, M> extends BaseFilter<T> {
+  metadata: Ref<M>;
+}
+
+export type Filter<T, M = unknown> = BaseFilter<T> | FilterWithMetadata<T, M>;
+
+export function useLineFilterState(): BaseFilter<string[]> {
   const linesFilter = useState<string[]>("show-lines-filter", () => []);
   const isLinesFiltered = computed(() => linesFilter.value.length > 0);
 
@@ -22,7 +27,7 @@ export function useLineFilterState(): Filter<string[], { streetname: string }> {
   };
 }
 
-export function useGeoFilterState(): Filter<
+export function useGeoFilterState(): FilterWithMetadata<
   {
     lngLat: mapboxgl.LngLat;
     radius: number;
@@ -40,12 +45,16 @@ export function useGeoFilterState(): Filter<
 
   const lngLat = computed(() => geoFilter.value?.lngLat);
 
-  const geoFilterStreetname = computedAsync(
-    () => (lngLat.value ? useStreename(lngLat.value) : fallback),
-    fallback
-  );
+  const geoFilterStreetname = computedAsync(async function () {
+    if (!lngLat.value) {
+      return fallback;
+    }
+    return await useStreename(lngLat.value);
+  }, fallback);
 
-  const metadata = computed(() => ({ streetname: geoFilterStreetname.value }));
+  const metadata = computedWithControl([geoFilterStreetname], () => ({
+    streetname: geoFilterStreetname.value,
+  }));
 
   function clearGeoFilter() {
     geoFilter.value = null;
@@ -65,7 +74,7 @@ const MIN = -5;
 const MAX = 20;
 export const DEFAULT_RANGE: [number, number] = [MIN, MAX];
 
-export function useTimeFilterState(): Filter<
+export function useTimeFilterState(): FilterWithMetadata<
   [number, number],
   {
     timeFilterRange: readonly [number, number];
@@ -116,7 +125,7 @@ export function useTimeFilterState(): Filter<
   };
 }
 
-export function useStatusFilterState(): Filter<boolean> {
+export function useStatusFilterState(): BaseFilter<boolean> {
   // true -> do not show externals
   const statusFilter = useState("status-filter", () => true);
 
@@ -127,7 +136,7 @@ export function useStatusFilterState(): Filter<boolean> {
   };
 }
 
-export function useTenantFilterState(): Filter<string[]> {
+export function useTenantFilterState(): BaseFilter<string[]> {
   const tenantFilter = useState<string[]>("tenant-filter", () => []);
 
   return {
@@ -137,7 +146,7 @@ export function useTenantFilterState(): Filter<string[]> {
   };
 }
 
-export function useWorkingSetFilterState(): Filter<(string | undefined)[]> {
+export function useWorkingSetFilterState(): BaseFilter<(string | undefined)[]> {
   const workingSetFilter = useState<string[]>("working-set-filter", () => []);
 
   return {
