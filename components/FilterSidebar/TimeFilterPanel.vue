@@ -6,12 +6,12 @@
   >
     <div ref="slider" style="padding-top: 2rem">
       <VRangeSlider
-        v-model="timeFilterState.model.value"
-        :min="timeFilterState.metadata!.value.timeFilterRange[0]"
-        :max="timeFilterState.metadata!.value.timeFilterRange[1]"
+        :model-value="displayedFilterModel"
+        :min="min"
+        :max="max"
         :step="1"
         thumb-label="always"
-        strict
+        @update:model-value="updateFilterModel"
       />
     </div>
   </FilterPanel>
@@ -42,10 +42,41 @@ const range = computed<[number, number] | null>(() => {
 watch(range, (newRange) => {
   // Set range once as soon as vehicles have loaded
   if (newRange !== null && !_.isEqual(range, newRange)) {
-    timeFilterState.metadata!.value.setTimeFilterRange(
+    timeFilterState.metadata.value.setTimeFilterRange(
       newRange,
       !mouseDown.pressed
     );
   }
 });
+
+function swapSignOfInterval(interal: [number, number]) {
+  return interal.map((v) => -1 * v).sort((a, b) => a - b) as [number, number];
+}
+
+const swapSign = useWeUseMinusForDelay();
+const displayedFilterModel = computed(() =>
+  !swapSign.value
+    ? timeFilterState.model.value
+    : swapSignOfInterval(timeFilterState.model.value)
+);
+
+function updateFilterModel(newInterval: [number, number]) {
+  if (!swapSign.value) {
+    timeFilterState.model.value = newInterval;
+  } else {
+    timeFilterState.model.value = swapSignOfInterval(newInterval);
+  }
+}
+
+const max = computed(() =>
+  !swapSign.value
+    ? timeFilterState.metadata.value.timeFilterRange[1]
+    : -1 * timeFilterState.metadata.value.timeFilterRange[0]
+);
+
+const min = computed(() =>
+  !swapSign.value
+    ? timeFilterState.metadata.value.timeFilterRange[0]
+    : -1 * timeFilterState.metadata.value.timeFilterRange[1]
+);
 </script>
