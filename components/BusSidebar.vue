@@ -34,17 +34,17 @@
             <td class="filter-icon">
               {{ vehicleState.operational?.line?.displayText }}
               <VTooltip location="bottom">
-                <template #activator="{ on }">
+                <template #activator="{ props: tooltipProps }">
                   <VBtn
                     dense
                     size="small"
                     variant="plain"
                     :icon="isLinesFiltered ? 'mdi-filter-off' : 'mdi-filter'"
-                    v-on="on"
+                    v-bind="tooltipProps"
                     @click="toggleLineFilter"
                   ></VBtn>
                 </template>
-                <span>Tooltip</span>
+                <span>Nur Busse dieser Linie anzeigen</span>
               </VTooltip>
             </td>
           </tr>
@@ -52,20 +52,18 @@
             <td>Dienstleister</td>
             <td class="filter-icon">
               {{ vehicleState.tenant }}
-              <VTooltip bottom>
-                <template #activator="{ on, attrs }">
+              <VTooltip location="bottom">
+                <template #activator="{ props: tooltipProps }">
                   <VBtn
                     dense
                     size="small"
                     variant="plain"
                     :icon="isTenantFiltered ? 'mdi-filter-off' : 'mdi-filter'"
-                    v-bind="attrs"
-                    v-on="on"
+                    v-bind="tooltipProps"
                     @click="toggleTenantFilter"
-                  >
-                  </VBtn>
+                  />
                 </template>
-                <span>Tooltip2</span>
+                <span>Nur Busse dieses Dienstleisters anzeigen</span>
               </VTooltip>
             </td>
           </tr>
