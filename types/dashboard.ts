@@ -6,4 +6,5 @@ export interface DashboardConfig {
   filterZeit: number[];
   filterLinie: string[];
   filterUnternehmen: string[];
+  chartTyp: string;
 }

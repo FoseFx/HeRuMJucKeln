@@ -1,9 +1,9 @@
 <template>
   <VRow>
-    <VCol v-for="filter in chartFilter" :key="filter.id" cols="3">
+    <VCol v-for="filter in chartFilter" :key="filter.id" cols="4">
       <DashboardCard :filter="filter" />
     </VCol>
-    <VCol cols="3">
+    <VCol cols="4">
       <DashboardConfigurate />
     </VCol>
   </VRow>

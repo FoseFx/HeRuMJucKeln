@@ -1,10 +1,13 @@
 <template>
-  <Pie
-    v-if="chartOptions && chartData && loaded"
-    :options="chartOptions"
-    :data="chartData"
-  >
-  </Pie>
+  <VContainer>
+    <Pie
+      v-if="chartOptions && chartData && loaded"
+      :options="chartOptions"
+      :data="chartData"
+      class="pie"
+    >
+    </Pie>
+  </VContainer>
 </template>
 
 <script setup lang="ts">
@@ -29,17 +32,23 @@ const dark = useDark();
 
 const chartOptions = computed(() => {
   const chartOptionsNew = {
+    maintainAspectRatio: false,
     responsive: true,
     plugins: {
       colors: {
         enabled: true,
       },
       legend: {
+        layout: {
+          autoPadding: true,
+        },
+        position: "right" as const,
         labels: {
           color: dark.value ? "#FFF" : "#000",
-          boxWidth: 20,
+          boxWidth: 12,
+          boxHeight: 12,
           font: {
-            size: 17,
+            size: 14,
           },
         },
       },
@@ -47,11 +56,13 @@ const chartOptions = computed(() => {
   };
   return chartOptionsNew;
 });
-
+function padding(str: String) {
+  return str.padEnd(45, " ");
+}
 const chartData = computed(() => {
   if (props.filterParent === "Zustand") {
     const chartDataNew = {
-      labels: props.labelsParent,
+      labels: props.labelsParent.map(padding),
       datasets: [
         {
           backgroundColor: ["green", "#D18700", "red", "grey"],
@@ -62,7 +73,7 @@ const chartData = computed(() => {
     return chartDataNew;
   } else {
     const chartDataNew = {
-      labels: props.labelsParent,
+      labels: props.labelsParent.map(padding),
       datasets: [
         {
           data: props.dataParent,
@@ -78,3 +89,9 @@ onMounted(() => {
   loaded.value = true;
 });
 </script>
+<style>
+.height {
+  margin-top: 0%;
+  margin-bottom: 0%;
+}
+</style>

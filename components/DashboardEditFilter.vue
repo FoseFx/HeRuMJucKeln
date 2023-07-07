@@ -9,7 +9,7 @@
             <VTextField v-model="nameTitel" label="Titel"></VTextField>
             <VSelect
               v-model="schluessel"
-              :items="['Linie', 'Unternehmen', 'Zustand']"
+              :items="['Linie', 'Unternehmen', 'Zustand', 'Minuten']"
               label="Schlüssel"
             ></VSelect>
             <VSelect
@@ -21,15 +21,21 @@
               ]"
               label="Metrik"
             ></VSelect>
-            <VCardText>Filter</VCardText>
+            <VSelect
+              v-model="typeChart"
+              :items="['Bar', 'Pie']"
+              label="Charttyp"
+            >
+            </VSelect>
+            <VRow class="titles">Filter</VRow>
             <VRow>
               <VCol cols="7">
-                <VSelect
+                <VAutocomplete
                   v-model="linesFilter"
                   multiple
                   :items="filteredLines"
                   label="Linien"
-                ></VSelect>
+                ></VAutocomplete>
               </VCol>
               <VCol>
                 <VBtn class="select" @click="linesFilter = filteredLines"
@@ -68,18 +74,33 @@
                 >
               </VCol>
             </VRow>
-            <VTextField
+            <VRow
               v-show="schluessel === 'Linie' || schluessel === 'Unternehmen'"
-              v-model="zeitab"
-              type="number"
-              label="Zeit ab (Minuten)"
-            />
-            <VTextField
+              class="titles"
+              >Zeitfilter</VRow
+            >
+            <VRow
               v-show="schluessel === 'Linie' || schluessel === 'Unternehmen'"
-              v-model="zeitbis"
-              type="number"
-              label="Zeit bis (Minuten)"
-            />
+            >
+              <VCol cols="1">
+                <p v-if="range[0] > -100" class="text">{{ range[0] }}</p>
+                <p v-else class="infty" size="large">-&#8734;</p>
+              </VCol>
+              <VCol cols="10">
+                <VRangeSlider
+                  v-model="range"
+                  :max="20"
+                  :min="-100"
+                  :step="1"
+                  hide-details
+                  strict
+                ></VRangeSlider>
+              </VCol>
+              <VCol cols="1">
+                <p v-if="range[1] < 20" class="text">{{ range[1] }}</p>
+                <p v-else class="infty">&#8734;</p>
+              </VCol>
+            </VRow>
 
             <p v-if="errorMessage">{{ errorMessage }}</p>
           </VCardText>
@@ -103,22 +124,16 @@ import { defineProps, watch } from "vue";
 import { UsePromiseResult, usePromise } from "vue-promised";
 import { DashboardConfig } from "~/types/dashboard";
 const props = defineProps<{ filter: DashboardConfig }>();
-// const linien = useAlleLinien();
-// const unternehmen = useAlleUnternehmen();
-
+const range = ref([props.filter.filterZeit[0], props.filter.filterZeit[1]]);
 const showModal = ref(false);
 const chartFilter = useFilter();
 const nameTitel = ref(props.filter.name);
-const zeitab = ref(props.filter.filterZeit[0]);
-const zeitbis = ref(props.filter.filterZeit[1]);
 const errorMessage = ref("");
-// const linienFilter = ref<number[]>(props.filter.filterLinie);
-// const diensleisterFilter = ref<string[]>(props.filter.filterUnternehmen);
 const linesFilter = ref<string[]>(props.filter.filterLinie);
 const tenantsFilter = ref<string[]>(props.filter.filterUnternehmen);
 const metrik = ref(props.filter.metrik);
 const schluessel = ref(props.filter.schluessel);
-
+const typeChart = ref(props.filter.chartTyp);
 const { data: lines } = useLines();
 const filteredLines = computed(() => {
   if (lines.value != null) {
@@ -150,15 +165,14 @@ const tenantsList = computed(() => {
 const abbrechen = () => {
   showModal.value = false;
   nameTitel.value = props.filter.name;
-  zeitab.value = props.filter.filterZeit[0];
-  zeitbis.value = props.filter.filterZeit[1];
+  range.value[0] = props.filter.filterZeit[0];
+  range.value[1] = props.filter.filterZeit[1];
   errorMessage.value = "";
-  //  linienFilter.value = props.filter.filterLinie;
-  //  diensleisterFilter.value = props.filter.filterUnternehmen;
   linesFilter.value = props.filter.filterLinie;
   tenantsFilter.value = props.filter.filterUnternehmen;
   metrik.value = props.filter.metrik;
   schluessel.value = props.filter.schluessel;
+  typeChart.value = props.filter.chartTyp;
 };
 const editFilter = () => {
   check();
@@ -170,9 +184,10 @@ const editFilter = () => {
     name: nameTitel.value,
     schluessel: schluessel.value,
     metrik: metrik.value,
-    filterZeit: [Number(zeitab.value), Number(zeitbis.value)],
+    filterZeit: [range.value[0], range.value[1]],
     filterLinie: linesFilter.value,
     filterUnternehmen: tenantsFilter.value,
+    chartTyp: typeChart.value,
   });
   showModal.value = false;
 };
@@ -187,9 +202,10 @@ const addFilter = () => {
     name: nameTitel.value,
     schluessel: schluessel.value,
     metrik: metrik.value,
-    filterZeit: [Number(zeitab.value), Number(zeitbis.value)],
+    filterZeit: [range.value[0], range.value[1]],
     filterLinie: linesFilter.value,
     filterUnternehmen: tenantsFilter.value,
+    chartTyp: typeChart.value,
   });
   showModal.value = false;
   abbrechen();
@@ -209,19 +225,36 @@ const check = () => {
     errorMessage.value = "Wähle eine Metrik";
     return;
   }
+  if (
+    schluessel.value === "Minuten" &&
+    (metrik.value === "Anteil der Fahrten unter Zeitfilter" ||
+      metrik.value === "Durchschnittliche Abweichung")
+  ) {
+    errorMessage.value = "Metrik und Schlüssel passen nicht zusammen";
+    return;
+  }
   if (linesFilter.value.length === 0) {
     linesFilter.value = filteredLines.value;
   }
   if (tenantsFilter.value.length === 0) {
     tenantsFilter.value = tenantsList.value ? tenantsList.value : [];
   }
-  if (schluessel.value === "Zustand") {
-    zeitab.value = -3000;
-    zeitbis.value = 6000;
+  if (schluessel.value === "Zustand" || schluessel.value === "Minuten") {
+    range.value[0] = -3000;
+    range.value[1] = 6000;
   }
-  if (!(Number(zeitab.value) < Number(zeitbis.value))) {
-    zeitab.value = -3000;
-    zeitbis.value = 6000;
+  if (!(range.value[0] < range.value[1])) {
+    range.value[0] = -3000;
+    range.value[1] = 6000;
+  }
+  if (range.value[0] <= -100) {
+    range.value[0] = -3000;
+  }
+  if (range.value[1] >= 20) {
+    range.value[1] = 6000;
+  }
+  if (typeChart.value === "") {
+    typeChart.value = "Pie";
   }
 };
 
@@ -238,23 +271,19 @@ watch(tenantsFilter, sortUnternehmen, { immediate: false });
 </script>
 
 <style scoped>
-.buttonCard {
-  height: 100%;
-  width: 100%;
-}
-
 .select {
   height: 73%;
   width: 100%;
 }
-.addButton {
-  height: 100%;
-  width: 100%;
-  font-size: 40px;
-}
 
-p {
-  color: red;
-  margin-top: 10px;
+.text {
+  padding-top: 10%;
+  font-size: medium;
+}
+.infty {
+  font-size: x-large;
+}
+.titles {
+  padding-top: 3%;
 }
 </style>

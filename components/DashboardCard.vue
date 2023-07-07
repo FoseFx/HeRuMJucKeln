@@ -1,12 +1,23 @@
 <template>
   <VCard @click="applyFilterOnMap">
     <h2 class="card-title">{{ filter.name }}</h2>
-    <PieChart
-      class="PieChart"
-      :labels-parent="labelsCut"
-      :data-parent="dataCut"
-      :filter-parent="filter.schluessel"
-    />
+    <VContainer class="Charts" style="padding: 0%">
+      <PieChart
+        v-if="isChartPieChart"
+        class="PieChart"
+        :labels-parent="labelsCut"
+        :data-parent="dataCut"
+        :filter-parent="filter.schluessel"
+      />
+      <BarChart
+        v-if="!isChartPieChart"
+        class="PieChart"
+        :labels-parent="labelsCut"
+        :data-parent="dataCut"
+        :filter-parent="filter.schluessel"
+        :small-labels="labelvalues"
+      />
+    </VContainer>
     <VContainer class="flex-gap" style="display: flex; justify-content: end">
       <DashboardEditFilter :filter="props.filter" />
       <VBtn icon="mdi-close" size="small">
@@ -32,6 +43,7 @@ import { defineProps } from "vue";
 import { useIntervalFn } from "@vueuse/core";
 import DashboardEditFilter from "../components/DashboardEditFilter.vue";
 import PieChart from "./PieChart.vue";
+import BarChart from "./BarChart.vue";
 import { DashboardConfig } from "~/types/dashboard";
 import { VehicleState } from "~/swagger/Api";
 
@@ -45,14 +57,17 @@ const data = ref<number[]>([]);
 const dataCut = ref<number[]>([]);
 let count = new Array<number>();
 const fahrzeuge = useVehicleStates$();
-let gesamt = 0;
 const dialog2 = ref(false);
-
+const isChartPieChart = computed(() => {
+  return props.filter.chartTyp === "Pie";
+});
 // aktuelle Filter auf Map anwenden
 const applyFilterOnMap = () => {
   const filterState = useLineFilterState();
   const timeFilter = useTimeFilterState();
+  const tenatFilter = useTenantFilterState();
   const linesID = props.filter.filterLinie;
+  tenatFilter.model.value = props.filter.filterUnternehmen;
   filterState.model.value = linesID.map((l) => l.replace("/", "~"));
   timeFilter.model.value = [
     props.filter.filterZeit[0],
@@ -88,6 +103,37 @@ if (props.filter.schluessel === "Unternehmen") {
   labelvalues.value = ["On Time", "Problematic", "Suboptimal", "Waiting"];
   labels.value = ["On Time", "Problematic", "Suboptimal", "Waiting"];
   data.value = [0, 0, 0, 0];
+} else if (props.filter.schluessel === "Minuten") {
+  labelvalues.value = [
+    "<-30",
+    "-20",
+    "-10",
+    "-6",
+    "-4",
+    "-2",
+    "-1",
+    "0",
+    "2",
+    "4",
+    ">6",
+  ];
+  labels.value = [
+    "<-30",
+    "-20",
+    "-10",
+    "-6",
+    "-4",
+    "-2",
+    "-1",
+    "0",
+    "2",
+    "4",
+    ">6",
+  ];
+  data.value = new Array(11);
+  data.value.fill(0);
+  count = new Array(11);
+  count.fill(0);
 }
 
 const checkLineTenent = (bus: VehicleState) => {
@@ -111,6 +157,31 @@ const checkTime = (bus: VehicleState) => {
     return true;
   }
   return false;
+};
+
+const giveIndexMinuten = (deviation: number) => {
+  if (deviation < -30) {
+    return 0;
+  } else if (deviation < -20) {
+    return 1;
+  } else if (deviation < -20) {
+    return 2;
+  } else if (deviation < -6) {
+    return 3;
+  } else if (deviation < -4) {
+    return 4;
+  } else if (deviation < -2) {
+    return 5;
+  } else if (deviation < -1) {
+    return 6;
+  } else if (deviation < 0) {
+    return 7;
+  } else if (deviation < 2) {
+    return 8;
+  } else if (deviation < 4) {
+    return 9;
+  }
+  return 10;
 };
 
 //
@@ -204,8 +275,13 @@ const updateFahrten = (vehicles: VehicleState[]) => {
         }
       }
     });
+  } else if (props.filter.schluessel === "Minuten") {
+    vehicles.forEach((bus) => {
+      if (checkLineTenent(bus) && checkTime(bus)) {
+        data.value[giveIndexMinuten(bus.deviation!.value!)] += 1;
+      }
+    });
   }
-  gesamt = data.value.reduce((a, b) => a + b, 0);
 };
 
 // wenn Metrik durchschnittliche Abweichung ist
@@ -265,28 +341,35 @@ const updateLabelAnteil = () => {
   for (let index = 0; index < labels.value.length; index += 1) {
     labels.value[index] = `${labelvalues.value[index]}: ${data.value[
       index
-    ].toString()} %          `;
+    ].toString()} %`;
   }
   labelsCut.value = labels.value.slice(0, 10);
 };
 
 const updateLabelFahrten = () => {
   for (let index = 0; index < labels.value.length; index += 1) {
-    const percentage = (data.value[index] / gesamt) * 100;
-    labels.value[index] = `${labelvalues.value[index]}:  ${percentage
-      .toFixed()
-      .toString()}%, ${data.value[index]} Fahrten   `;
+    labels.value[
+      index
+    ] = `${labelvalues.value[index]}: ${data.value[index]} Fahrten`;
   }
-  labelsCut.value = labels.value.slice(0, 10);
+  if (props.filter.schluessel !== "Minuten") {
+    labelsCut.value = labels.value.slice(0, 10);
+  } else {
+    labelsCut.value = labels.value;
+  }
 };
 
 const updateLabelAbweichung = () => {
   for (let index = 0; index < labels.value.length; index += 1) {
     labels.value[index] = `${labelvalues.value[index]}:  ${data.value[
       index
-    ].toString()} Minuten      `;
+    ].toString()} Minuten`;
   }
-  labelsCut.value = labels.value.slice(0, 10);
+  if (props.filter.schluessel !== "Minuten") {
+    labelsCut.value = labels.value.slice(0, 10);
+  } else {
+    labelsCut.value = labels.value;
+  }
 };
 
 const sortLinesData = () => {
@@ -298,8 +381,11 @@ const sortLinesData = () => {
     );
     data.value.sort((a, b) => (a < b ? 1 : -1));
   }
-
-  dataCut.value = data.value.slice(0, 10);
+  if (props.filter.schluessel !== "Minuten") {
+    dataCut.value = data.value.slice(0, 10);
+  } else {
+    dataCut.value = data.value;
+  }
 };
 
 const update = (vehicles: VehicleState[]) => {
@@ -342,5 +428,9 @@ onMounted(() => {
 h2 {
   padding: 3%;
   height: 5rem;
+}
+.Charts {
+  height: 330px;
+  overflow-y: auto;
 }
 </style>
