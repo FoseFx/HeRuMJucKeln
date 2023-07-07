@@ -54,6 +54,12 @@ Locally preview production build:
 npm run preview
 ```
 
+Preview app on localhost:3000
+
+```bash
+npm run build && npm run preview
+```
+
 ### Configuration
 
 This list of environment variables is best-effort, most configuration is done in `nuxt.config.ts`.

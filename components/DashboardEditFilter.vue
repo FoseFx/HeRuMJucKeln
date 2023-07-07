@@ -120,7 +120,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, watch } from "vue";
 import { UsePromiseResult, usePromise } from "vue-promised";
 import { DashboardConfig } from "~/types/dashboard";
 const props = defineProps<{ filter: DashboardConfig }>();

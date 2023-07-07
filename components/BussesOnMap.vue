@@ -116,6 +116,10 @@ const dark = useDark();
 
 function getVehicleStyle(vehicle: VehicleState) {
   const complementaryColor = dark.value ? "white" : "black";
+  const color =
+    vehicle.identification.uid === busId.value
+      ? "purple"
+      : getDeviationSemanticsColor(vehicle.deviation?.semantics);
   const style: {
     color?: string;
     opacity: number;
@@ -123,12 +127,8 @@ function getVehicleStyle(vehicle: VehicleState) {
     circleStrokeColor?: string;
     circleStrokeWidth?: number;
   } = {
-    color:
-      vehicle.identification.uid === busId.value
-        ? "purple"
-        : getDeviationSemanticsColor(vehicle.deviation?.semantics) ??
-          complementaryColor,
-    opacity: 1,
+    color: color ?? complementaryColor,
+    opacity: color === undefined ? 0.5 : 1,
     radius: 6,
   };
   if (busId.value) {

@@ -39,7 +39,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from "vue";
 import { useIntervalFn } from "@vueuse/core";
 import DashboardEditFilter from "../components/DashboardEditFilter.vue";
 import PieChart from "./PieChart.vue";
