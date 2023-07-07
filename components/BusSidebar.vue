@@ -9,10 +9,12 @@
       <VIcon>mdi-map</VIcon>
     </NuxtLink>
   </VCardTitle>
-  <VCardSubtitle v-if="firstStop && vehicleState.destination?.lastStopName">
-    {{ firstStop }}
+  <VCardSubtitle>
+    {{ firstStop ? firstStop : "START" }}
     <VIcon icon="mdi-arrow-right" />
-    {{ vehicleState.destination.lastStopName }}
+    {{
+      vehicleState.destination ? vehicleState.destination.lastStopName : "ZIEL"
+    }}
   </VCardSubtitle>
   <VRow>
     <VCol>
@@ -57,8 +59,8 @@
                     size="small"
                     variant="plain"
                     :icon="isTenantFiltered ? 'mdi-filter-off' : 'mdi-filter'"
-                    v-on="on"
                     v-bind="attrs"
+                    v-on="on"
                     @click="toggleTenantFilter"
                   >
                   </VBtn>
