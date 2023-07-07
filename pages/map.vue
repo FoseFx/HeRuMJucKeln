@@ -35,7 +35,13 @@
     >
       <FilterSidebar context="map" />
     </VCol>
-    <VCol v-if="sidebarBusParam" :cols="5" style="height: 100%">
+    <VCol
+      v-if="sidebarBusParam"
+      :sm="9"
+      :md="5"
+      :cols="10"
+      style="height: 100%"
+    >
       <SidebarPageRouterWrapper />
     </VCol>
   </VRow>

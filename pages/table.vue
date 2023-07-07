@@ -14,7 +14,7 @@
     >
       <FilterSidebar context="table" />
     </VCol>
-    <VCol v-if="sidebarOpen" :cols="5" class="sidebar">
+    <VCol v-if="sidebarOpen" :sm="9" :md="5" :cols="10" class="sidebar">
       <SidebarPageRouterWrapper />
     </VCol>
   </VRow>
