@@ -1,5 +1,34 @@
 # HeRuMJucKeln [(Live version here)](https://swc.pages.rwth-aachen.de/teaching/summer-term-2023/daten-die-uns-bewegen/herumjuckeln/herumjuckeln/)
 
+## Screenshots
+
+![Map in Dark Mode](./.meta/map_dark.png)
+Map in Dark Mode
+
+<details>
+
+<summary>More Screenshots (open)</summary>
+
+![Sidebar in Dark Mode](./.meta/sidebar_dark.png)
+Sidebar in Dark Mode
+
+![Sidebar in Light Mode](./.meta/sidebar_light.png)
+Sidebar in Light Mode
+
+![Table on an iPad Air](./.meta/table_tablet.png)
+Table on an iPad Air
+
+![Dashboard in Light Mode](./.meta/dashboard_light.png)
+Dashboard in Light Mode
+
+</details>
+
+<br>
+
+---
+
+<br>
+
 Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
 
 ## Setup
